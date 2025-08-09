@@ -1,0 +1,25 @@
+---
+globs: *.ts,*.vue
+description: TypeScript 与 Vue SFC 代码风格
+---
+## 通用
+- 统一风格：单引号、无分号、两空格缩进
+- 导出/公共函数显式标注返回类型，避免 `any`
+- 使用早返回，减少嵌套
+
+## Vue 3 SFC
+- 优先使用 `<script setup lang="ts">`
+- 组件文件名使用 PascalCase
+- 使用 `defineProps`/`defineEmits`；事件采用短横线风格
+- 模板内使用 `RouterLink`/`RouterView`
+- 样式默认 `scoped`
+
+## 导入与路径
+- 使用别名 `@` 指向 `src`
+- 第三方包在前，本地模块在后，按组分块
+
+## 路由懒加载
+```ts
+const AboutView = () => import('@/views/AboutView.vue')
+```
+

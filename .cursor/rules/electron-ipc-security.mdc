@@ -1,0 +1,42 @@
+---
+globs: electron/*.ts,src/types/*.d.ts,src/**/*.ts
+description: Electron 进程与 IPC 安全规范
+---
+- 渲染进程不可直接访问 Node/Electron，统一通过 `preload` 暴露受限 API 到 `window.api`。
+
+- 新增 IPC 步骤：
+  1. 主进程在 `electron/main.ts` 使用 `ipcMain.handle('app:get-version', handler)`
+  2. 预加载在 `electron/preload.ts` 使用 `contextBridge.exposeInMainWorld('api', { ... })`
+  3. 在 `src/types/electron-api.d.ts` 扩展 `Window['api']` 类型
+  4. 渲染端以 `await window.api.method()` 调用，并对 `window.api` 做存在性判断（测试环境）
+
+- 约束
+  - 仅传输可序列化数据；主进程做参数校验与错误处理
+  - 保持 `contextIsolation: true`、`nodeIntegration: false`；外链一律 `shell.openExternal`
+
+- 示例
+```ts
+// electron/main.ts
+import { app, ipcMain } from 'electron'
+ipcMain.handle('app:get-version', () => app.getVersion())
+```
+
+```ts
+// electron/preload.ts
+import { contextBridge, ipcRenderer } from 'electron'
+contextBridge.exposeInMainWorld('api', {
+  getAppVersion: () => ipcRenderer.invoke('app:get-version')
+})
+```
+
+```ts
+// src/types/electron-api.d.ts
+declare global {
+  interface Window {
+    api?: {
+      getAppVersion: () => Promise<string>
+    }
+  }
+}
+```
+

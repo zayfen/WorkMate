@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+---
+# WorkMate 项目结构与运行指南
+
+- 核心入口
+  - 渲染进程：[index.html](mdc:index.html) → [src/main.ts](mdc:src/main.ts) 挂载 `App.vue`；路由在 [src/router/index.ts](mdc:src/router/index.ts)
+  - Electron 主进程：[electron/main.ts](mdc:electron/main.ts)
+  - 预加载脚本：[electron/preload.ts](mdc:electron/preload.ts) → 通过 `contextBridge` 暴露 `window.api`
+  - 渲染层类型声明：[src/types/electron-api.d.ts](mdc:src/types/electron-api.d.ts)
+
+- 开发与构建
+  - 开发：`yarn dev`（启动 Vite；若 Electron 未自动拉起，可在另一终端执行 `yarn start`）
+  - 构建前端：`yarn build` → 输出 `dist/`
+  - 构建主/预加载：`yarn build:electron` → 输出 `dist-electron/`
+  - 打包：`yarn dist:*`（见 [package.json](mdc:package.json)）
+  - 配置文件：[vite.config.ts](mdc:vite.config.ts)、[vite.electron.config.ts](mdc:vite.electron.config.ts)
+
+- 运行时要点
+  - 别名：`@` → `src`
+  - 基础路径：`base: './'`（支持 `file://`）
+  - 窗口安全：`contextIsolation: true`、`nodeIntegration: false`、`sandbox: false`
+  - 外链：使用 `setWindowOpenHandler` + `shell.openExternal`
+  - DevTools：仅在开发时打开（存在 `VITE_DEV_SERVER_URL`）
+
+- 目录约定
+  - `src/` 渲染进程（Vue 3）
+  - `electron/` 主进程与预加载
+  - `dist/`、`dist-electron/` 为构建产物目录
+

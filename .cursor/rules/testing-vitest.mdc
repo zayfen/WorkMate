@@ -1,0 +1,30 @@
+---
+globs: src/**/*.spec.ts,src/test/**/*.ts
+description: Vitest 测试规范
+---
+- 运行环境：`jsdom`；别名 `@` 可用于导入；全局初始化见 [src/test/setup.ts](mdc:src/test/setup.ts)
+- 不直接依赖 Electron；如需 `window.api`，在 setup 中注入最小 stub。
+- 测试放置于 `__tests__` 或 `*.spec.ts`。
+
+### 在 setup 中注入最小 stub
+```ts
+// src/test/setup.ts
+if (!('api' in window)) {
+  Object.defineProperty(window, 'api', {
+    value: { ping: async () => 'pong' },
+    configurable: true
+  })
+}
+```
+
+### 基本组件测试示例
+```ts
+import { mount } from '@vue/test-utils'
+import HelloWorld from '@/components/HelloWorld.vue'
+
+it('renders props.msg', () => {
+  const wrapper = mount(HelloWorld, { props: { msg: 'Unit Test' } })
+  expect(wrapper.text()).toContain('Unit Test')
+})
+```
+

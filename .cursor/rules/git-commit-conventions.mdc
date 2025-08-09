@@ -1,0 +1,14 @@
+---
+alwaysApply: true
+description: Git 提交信息规范（AI 专用）
+---
+- 提交信息必须以 `[AI]` 前缀开头。
+- 禁止自动生成/提交 commit message；提交时需明确书写信息。
+- 建议遵循 Conventional Commits：
+  - `[AI] feat: 添加新功能`
+  - `[AI] fix: 修复缺陷`
+  - `[AI] docs: 更新文档`
+  - `[AI] refactor: 重构`
+  - `[AI] test: 测试相关`
+  - `[AI] chore/build: 构建与杂项`
+
