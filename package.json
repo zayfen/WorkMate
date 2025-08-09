@@ -11,6 +11,12 @@
     "build:electron": "vite build --config vite.electron.config.ts",
     "preview": "vite preview",
     "start": "electron dist-electron/main/index.cjs",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:install": "playwright install",
+    "e2e:web": "yarn build && playwright test -c playwright.config.ts",
+    "e2e:electron": "yarn build && yarn build:electron && playwright test -c playwright.electron.config.ts",
     "dist": "yarn build && yarn build:electron && electron-builder -mwl",
     "dist:mac": "yarn build && yarn build:electron && electron-builder --mac dmg",
     "dist:win": "yarn build && yarn build:electron && electron-builder --win nsis",
@@ -24,11 +30,12 @@
     "vue-router": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.54.2",
     "@types/node": "^20.14.12",
     "@vitejs/plugin-vue": "^5.1.2",
     "@vue/test-utils": "^2.4.6",
-    "electron-builder": "^24.13.3",
     "electron": "30.5.1",
+    "electron-builder": "^24.13.3",
     "jsdom": "^24.1.1",
     "typescript": "^5.5.4",
     "vite": "^5.4.1",
@@ -46,12 +53,21 @@
       "package.json"
     ],
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "category": "public.app-category.productivity",
       "artifactName": "${productName}-${version}.${ext}"
     },
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "nsis": {
@@ -60,7 +76,9 @@
       "allowToChangeInstallationDirectory": true
     },
     "linux": {
-      "target": ["deb"],
+      "target": [
+        "deb"
+      ],
       "category": "Utility",
       "artifactName": "${productName}-${version}.${ext}"
     },
