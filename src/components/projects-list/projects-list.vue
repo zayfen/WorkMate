@@ -167,10 +167,10 @@ onMounted(fetchProjects)
           <span v-if="p.archived" class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">已归档</span>
         </div>
 
-        <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-600">
+        <div class="mt-3 space-y-1 text-xs text-gray-600">
           <div>创建时间：<span class="text-gray-900">{{ formatDate(p.created_at) }}</span></div>
           <div>预计结束：<span class="text-gray-900">{{ formatDate(p.estimated_end_at) }}</span></div>
-          <div class="col-span-2">参与人：
+          <div>参与人：
             <span v-if="p.participants.length === 0" class="text-gray-400">-</span>
             <span v-else class="inline-flex flex-wrap gap-1">
               <span v-for="name in p.participants" :key="name" class="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] text-gray-700">{{ name }}</span>
