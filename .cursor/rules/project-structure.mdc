@@ -28,3 +28,7 @@ alwaysApply: true
   - `electron/` 主进程与预加载
   - `dist/`、`dist-electron/` 为构建产物目录
 
+- 命名约定
+  - 所有的文件名都是 kebab-case 样式的
+  - 所有的页面，读应该包含在页面路面中，比如 views/home-view.vue 改成 views/home-view/home-view.vue
+

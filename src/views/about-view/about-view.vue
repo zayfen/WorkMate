@@ -8,13 +8,4 @@
   </section>
 </template>
 
-<style scoped>
-h2 {
-  margin-bottom: 8px;
-}
-p {
-  color: #6b7280;
-}
-</style>
-
 
