@@ -85,6 +85,39 @@ function runMigrations(db: SqliteDatabase): void {
       value TEXT NOT NULL
     );
   `)
+
+  // projects table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')*1000),
+      archived INTEGER NOT NULL DEFAULT 0,
+      estimated_end_at INTEGER,
+      participants TEXT DEFAULT '[]'
+    );
+  `)
+
+  // tasks table (minimal for counts)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tasks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'todo',
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')*1000),
+      updated_at INTEGER,
+      FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      CHECK (status IN ('todo','in_progress','done'))
+    );
+  `)
+
+  // helpful indexes
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
+    CREATE INDEX IF NOT EXISTS idx_projects_archived ON projects(archived);
+  `)
 }
 
 

@@ -4,6 +4,8 @@ import { mkdirSync } from 'node:fs'
 import { DatabaseManager } from './models/db'
 import { UsersDao } from './models/users'
 import { SettingsDao } from './models/settings'
+import { ProjectsDao } from './models/projects'
+import { TasksDao } from './models/tasks'
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
@@ -142,4 +144,88 @@ ipcMain.handle('user:choose-avatar', async () => {
   }
 })
 
+// Projects handlers
+ipcMain.handle('projects:list', async (_event, payload: { includeArchived?: boolean }) => {
+  const includeArchived = Boolean(payload?.includeArchived)
+  const projectsDao = new ProjectsDao()
+  const tasksDao = new TasksDao()
+  const rows = projectsDao.list(includeArchived)
+  const ids = rows.map((r) => r.id)
+  const counts = tasksDao.countsForProjectIds(ids)
+  const countsMap = new Map(counts.map((c) => [c.project_id, c]))
+  return rows.map((r) => {
+    const participants = r.participants ? safeParseJsonArray(r.participants) : []
+    const c = countsMap.get(r.id) || { total: 0, done: 0, in_progress: 0, todo: 0 }
+    return {
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      created_at: r.created_at,
+      archived: r.archived === 1,
+      estimated_end_at: r.estimated_end_at,
+      participants,
+      counts: c
+    }
+  })
+})
+
+ipcMain.handle('projects:create', async (_event, payload: { title: string; description?: string | null; estimated_end_at?: number | null; participants?: string[] }) => {
+  const projectsDao = new ProjectsDao()
+  const id = projectsDao.create({
+    title: String(payload?.title || '').slice(0, 200) || '未命名项目',
+    description: payload?.description ?? null,
+    estimated_end_at: typeof payload?.estimated_end_at === 'number' ? payload.estimated_end_at : null,
+    participants: Array.isArray(payload?.participants) ? payload?.participants?.slice(0, 50) : []
+  })
+  const row = projectsDao.getById(id)
+  if (!row) return null
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    created_at: row.created_at,
+    archived: row.archived === 1,
+    estimated_end_at: row.estimated_end_at,
+    participants: row.participants ? safeParseJsonArray(row.participants) : [],
+    counts: { total: 0, done: 0, in_progress: 0, todo: 0 }
+  }
+})
+
+ipcMain.handle('projects:update', async (_event, payload: { id: number; title?: string; description?: string | null; estimated_end_at?: number | null; participants?: string[] }) => {
+  const id = Number(payload?.id)
+  if (!id) return false
+  const projectsDao = new ProjectsDao()
+  projectsDao.update(id, {
+    title: payload?.title,
+    description: payload?.description,
+    estimated_end_at: payload?.estimated_end_at,
+    participants: payload?.participants
+  })
+  return true
+})
+
+ipcMain.handle('projects:set-archived', async (_event, payload: { id: number; archived: boolean }) => {
+  const id = Number(payload?.id)
+  if (!id) return false
+  const projectsDao = new ProjectsDao()
+  projectsDao.setArchived(id, Boolean(payload?.archived))
+  return true
+})
+
+ipcMain.handle('projects:delete', async (_event, payload: { id: number }) => {
+  const id = Number(payload?.id)
+  if (!id) return false
+  const projectsDao = new ProjectsDao()
+  projectsDao.delete(id)
+  return true
+})
+
+function safeParseJsonArray(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string') : []
+  } catch {
+    return []
+  }
+}
 
