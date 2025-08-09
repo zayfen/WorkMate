@@ -23,3 +23,9 @@ description: TypeScript 与 Vue SFC 代码风格
 const AboutView = () => import('@/views/AboutView.vue')
 ```
 
+## 样式与 Tailwind CSS
+- 优先使用 Tailwind 工具类，避免内联 `style`；复杂场景用 `:class` 对象/数组管理条件类。
+- 少量复用可在组件 `scoped` 样式中用 `@apply` 提炼，禁止定义全局原子类。
+- 颜色、间距等新增设计令牌在 [tailwind.config.cjs](mdc:tailwind.config.cjs) 的 `theme.extend` 定义。
+- `content` 扫描路径保持与模板/脚本一致，避免运行时拼接不可枚举类名。
+

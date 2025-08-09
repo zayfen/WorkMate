@@ -1,0 +1,92 @@
+---
+globs: src/**/*.vue,src/**/*.ts,src/**/*.css
+description: Tailwind CSS 使用规范
+---
+
+- 关联文件： [tailwind.config.cjs](mdc:tailwind.config.cjs)、[src/assets/main.css](mdc:src/assets/main.css)
+
+### 基础接入
+- 在 `src/assets/main.css` 顶部包含以下指令（若缺失请补齐）：
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+- `tailwind.config.cjs` 的 `content` 需覆盖 `index.html` 与 `src/**/*.{vue,ts,tsx,js,jsx}`（当前已配置）。
+
+### 使用规范
+- 优先使用 Tailwind 工具类，避免内联 `style`。
+- 类名顺序建议：布局/定位 → 尺寸 → 间距 → 排版 → 颜色/背景 → 圆角/阴影 → 状态/交互。
+- 复杂场景使用 `:class` 对象/数组管理条件类，避免字符串拼接生成不可静态分析的类名。
+- 动态类名应显式枚举，避免 `bg-${color}` 这类无法被扫描到的写法。
+
+示例：
+
+```vue
+<template>
+  <button
+    type="button"
+    :class="[
+      'inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium',
+      isActive ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-gray-900 hover:bg-gray-50',
+      disabled && 'opacity-50 cursor-not-allowed'
+    ]"
+    :disabled="disabled"
+  >
+    <slot />
+  </button>
+  
+  <!-- 显式枚举动态颜色 -->
+  <div :class="{
+    'bg-red-100 text-red-800': color === 'red',
+    'bg-green-100 text-green-800': color === 'green',
+    'bg-blue-100 text-blue-800': color === 'blue'
+  }" />
+  
+  <!-- 使用 dark: 前缀 -->
+  <div class="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-50">...</div>
+  
+  <!-- 只在开发阶段可读性需要时，短注释说明分组含义 -->
+  <div class="flex items-center gap-2 /* layout */ px-3 py-2 /* spacing */ text-sm text-gray-700 /* typography */">...</div>
+  
+  <!-- 更多模板代码省略 -->
+</template>
+```
+
+### 复用与 @apply
+- 仅在组件的 `scoped` 样式块内小范围使用 `@apply` 提炼复用类，避免定义全局原子类以免命名污染。
+
+```vue
+<style scoped>
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-50;
+}
+.btn-secondary {
+  @apply bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50;
+}
+</style>
+```
+
+### 主题与暗色模式
+- 默认暗色模式为 `media`；如需通过类切换，请在 [tailwind.config.cjs](mdc:tailwind.config.cjs) 设置：
+
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{vue,ts,tsx,js,jsx}'],
+  theme: { extend: {} },
+  plugins: []
+}
+```
+
+### 插件与生态
+- 优先使用官方插件，按需安装并在 `plugins` 中注册：`@tailwindcss/forms`、`@tailwindcss/typography`、`@tailwindcss/line-clamp`。
+- 与无样式组件库（如 `@headlessui/vue`、`radix-vue`、`floating-vue`）配合，通过 Tailwind 赋予样式。
+
+### 性能与可读性
+- 长 `class` 列表应按分组组织（布局/尺寸/间距/排版/视觉/状态），便于审阅。
+- 避免在运行时拼接不可枚举的类名；确保 `content` 路径覆盖所有模板与脚本中的类字符串。
+

@@ -1,6 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
-const HomeView = () => import('@/views/home-view/home-view.vue')
 const AboutView = () => import('@/views/about-view/about-view.vue')
 const Layout = () => import('@/views/layout.vue')
 const DashboardView = () => import('@/views/dashboard-view/dashboard-view.vue')
@@ -15,12 +14,12 @@ const SettingsView = () => import('@/views/settings-view/settings-view.vue')
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', name: 'home', component: HomeView },
     { path: '/about', name: 'about', component: AboutView },
     {
-      path: '/app',
+      path: '/',
+      component: Layout,
       children: [
-        { path: '', redirect: '/app/dashboard' },
+        { path: '', redirect: '/dashboard' },
         { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { title: '仪表盘' } },
         { path: 'calendar', name: 'calendar', component: CalendarViews, meta: { title: '日程' } },
         { path: 'projects', name: 'projects', component: ProjectsView, meta: { title: '项目' } },

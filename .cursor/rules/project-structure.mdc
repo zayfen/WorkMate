@@ -15,6 +15,7 @@ alwaysApply: true
   - 构建主/预加载：`yarn build:electron` → 输出 `dist-electron/`
   - 打包：`yarn dist:*`（见 [package.json](mdc:package.json)）
   - 配置文件：[vite.config.ts](mdc:vite.config.ts)、[vite.electron.config.ts](mdc:vite.electron.config.ts)
+  - 样式与 Tailwind：指令位于 [src/assets/main.css](mdc:src/assets/main.css)，配置见 [tailwind.config.cjs](mdc:tailwind.config.cjs)（由 Vite/PostCSS 自动处理）
 
 - 运行时要点
   - 别名：`@` → `src`
@@ -27,6 +28,7 @@ alwaysApply: true
   - `src/` 渲染进程（Vue 3）
   - `electron/` 主进程与预加载
   - `dist/`、`dist-electron/` 为构建产物目录
+  - `src/assets/main.css` 包含 Tailwind 指令
 
 - 命名约定
   - 所有的文件名都是 kebab-case 样式的

@@ -1,0 +1,37 @@
+---
+globs: src/**/*.vue,src/**/*.ts,src/**/*.tsx,src/**/*.js,src/**/*.jsx
+description: 第三方组件库引入与使用规范
+---
+
+### 选择原则（与 Tailwind 协同）
+- 优先选择“无样式/低样式”的 Headless 类库，通过 Tailwind 赋予外观。
+- 需满足：MIT/兼容开源协议、原生 ESM、良好的 TypeScript 类型、支持 Tree-shaking、活跃维护。
+- Electron 兼容：不依赖 `nodeIntegration`，不在渲染进程做危险的全局注入。
+- 体积友好：按需加载、避免全量注册；避免引入庞大 CSS 框架与全局覆盖样式。
+
+### 推荐类别与示例
+- 无样式组件：`@headlessui/vue`、`radix-vue`、`floating-vue`
+- 图标：`@heroicons/vue`、`lucide-vue-next`（配合 `class="w-5 h-5"` 等 Tailwind 尺寸类）
+- 浮层/提示：`floating-vue`（与 Tailwind 间距/阴影类搭配）
+- 列表虚拟化：`vue-virtual-scroller`
+- 日期处理：`dayjs`（避免 `moment`）
+
+### 引入流程
+1. 评估：记录用途、可替代方案、维护活跃度、体积与依赖。
+2. 安装：作为 `dependencies` 安装运行时需要的库；类型或构建相关放入 `devDependencies`。
+3. 使用：
+   - 优先“局部引入”，避免在 `main.ts` 全局注册整包；保留按需 Tree-shaking。
+   - 为公共 UI 组合在 `src/components` 或 `src/components/ui` 包装二次封装，统一接口与样式（由 Tailwind 负责）。
+4. 样式整合：不引入库的全局样式文件；通过 Tailwind 类与少量 `@apply` 实现外观。
+5. 版本与安全：遵循最小许可原则与定期更新；引入新库需在 PR 描述中附上选择理由与对比。
+
+### 使用要点
+- 类型友好：导入具名导出，避免默认导出不明确的 API。
+- 可访问性：优先选择内置 a11y 支持（如 `@headlessui/vue`），并在封装层补齐 `aria-*` 与键盘交互。
+- 动画与交互：优先使用 CSS 过渡（`transition-*`）与 `@vueuse/motion` 等轻量工具，避免大型动画库。
+
+### 示例（按需引入）
+```ts
+import { Dialog, DialogPanel, TransitionRoot } from '@headlessui/vue'
+```
+
