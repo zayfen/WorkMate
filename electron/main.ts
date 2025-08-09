@@ -69,35 +69,52 @@ ipcMain.handle('ping', () => 'pong')
 
 // User profile handlers
 ipcMain.handle('user:get-profile', async () => {
-  const users = new UsersDao()
-  const settings = new SettingsDao()
-  const localId = 'local_user'
+  try {
+    const users = new UsersDao()
+    const settings = new SettingsDao()
+    const localId = 'local_user'
 
-  let user = users.getUserByLocalId(localId)
-  if (!user) {
-    users.createUser({ name: '未命名用户', local_id: localId, avatar_path: null, avatar_base64: null, note: null, device_info: null })
-    user = users.getUserByLocalId(localId)
-  }
-  // Ensure device_id exists
-  settings.ensureDeviceId()
-  if (!user) return null
-  return {
-    ...user,
-    avatar_path: null
+    let user = users.getUserByLocalId(localId)
+    if (!user) {
+      console.log('Creating new user...')
+      users.createUser({ name: '未命名用户', local_id: localId, avatar_path: null, avatar_base64: null, note: null, device_info: null })
+      user = users.getUserByLocalId(localId)
+    }
+    // Ensure device_id exists
+    settings.ensureDeviceId()
+    if (!user) {
+      console.error('Failed to create/get user')
+      return null
+    }
+    console.log('Got user profile:', user)
+    return {
+      ...user,
+      avatar_path: null
+    }
+  } catch (error) {
+    console.error('Error getting user profile:', error)
+    return null
   }
 })
 
 ipcMain.handle('user:save-profile', async (_event, payload: { name?: string; note?: string; avatar_base64?: string | null }) => {
-  const users = new UsersDao()
-  const localId = 'local_user'
-  const clean = {
-    name: typeof payload?.name === 'string' ? payload.name.slice(0, 100) : undefined,
-    note: typeof payload?.note === 'string' ? payload.note.slice(0, 1000) : undefined,
-    avatar_base64: payload?.avatar_base64 === null || typeof payload?.avatar_base64 === 'string' ? payload.avatar_base64 : undefined
+  try {
+    console.log('Saving user profile:', payload)
+    const users = new UsersDao()
+    const localId = 'local_user'
+    const clean = {
+      name: typeof payload?.name === 'string' ? payload.name.slice(0, 100) : undefined,
+      note: typeof payload?.note === 'string' ? payload.note.slice(0, 1000) : undefined,
+      avatar_base64: payload?.avatar_base64 === null || typeof payload?.avatar_base64 === 'string' ? payload.avatar_base64 : undefined
+    }
+    users.updateUserByLocalId(localId, clean)
+    const updated = users.getUserByLocalId(localId)
+    console.log('Updated user profile:', updated)
+    return updated ? { ...updated, avatar_path: null } : null
+  } catch (error) {
+    console.error('Error saving user profile:', error)
+    return null
   }
-  users.updateUserByLocalId(localId, clean)
-  const updated = users.getUserByLocalId(localId)
-  return updated ? { ...updated, avatar_path: null } : null
 })
 
 ipcMain.handle('settings:get-device-id', async () => {

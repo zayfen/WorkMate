@@ -27,7 +27,7 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.5",
+    "better-sqlite3": "^12.2.0",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3",
     "vue-toastification": "^2.0.0-rc.5"

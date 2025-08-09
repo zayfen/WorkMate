@@ -14,6 +14,8 @@ async function loadProfile() {
   try {
     const profile = await window.api?.getUserProfile?.()
     const id = await window.api?.getDeviceId?.()
+    console.log("profile: ", profile)
+    console.log("id:", id);
     deviceId.value = id ?? ''
     if (profile) {
       name.value = profile.name ?? ''
