@@ -179,10 +179,9 @@ onMounted(fetchProjects)
         </div>
 
         <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
-          <span class="rounded-md bg-gray-100 px-2 py-0.5 text-gray-700">总 {{ p.counts.total }}</span>
-          <span class="rounded-md bg-green-100 px-2 py-0.5 text-green-700">完成 {{ p.counts.done }}</span>
-          <span class="rounded-md bg-blue-100 px-2 py-0.5 text-blue-700">进行中 {{ p.counts.in_progress }}</span>
           <span class="rounded-md bg-amber-100 px-2 py-0.5 text-amber-700">未开始 {{ p.counts.todo }}</span>
+          <span class="rounded-md bg-blue-100 px-2 py-0.5 text-blue-700">进行中 {{ p.counts.in_progress }}</span>
+          <span class="rounded-md bg-green-100 px-2 py-0.5 text-green-700">完成 {{ p.counts.done }}</span>
         </div>
 
         <div class="mt-4 flex items-center gap-2">
