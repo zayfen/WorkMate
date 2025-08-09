@@ -2,7 +2,7 @@
 
 > 使用说明：从上到下依次执行各 Epic 文件中的任务。每个任务包含目标、步骤与验收标准。执行变更后请本地运行 `yarn dev`/`yarn test` 验证。提交时遵循提交规范（消息前缀需以 `[AI]` 开头），但请勿自动提交。
 
-- [Epic 0 — 项目启动与基础设施](./epic-00-foundation.md)
+- [Epic 0 — 项目启动与基础设施](./done/epic-00-foundation.md)
 - [Epic 1 — 用户与鉴权（本地）](./epic-01-user-profiles.md)
 - [Epic 2 — 数据模型与持久化](./epic-02-data-persistence.md)
 - [Epic 3 — 任务与工程管理](./epic-03-tasks-and-projects.md)
