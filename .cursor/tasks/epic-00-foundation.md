@@ -32,7 +32,7 @@
     1) 新建/完善 `ARCHITECTURE.md`：`src/components`、`src/views`、`src/store`、`src/api`、`src/services` 约定。
   - 验收标准：
     - 文档存在并描述清晰。
-- Task 0.2.2 打包配置（Electron/Tauri 或 Web）
+- Task 0.2.2 打包配置（Electron或 Web）
   - 步骤：
     1) 确认 `vite.electron.config.ts` 可构建主/预加载，`yarn start` 拉起 Electron。
   - 验收标准：
