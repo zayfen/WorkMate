@@ -17,9 +17,13 @@ const router = createRouter({
     { path: '/about', name: 'about', component: AboutView },
     {
       path: '/',
+      redirect: '/app'
+    },
+    {
+      path: '/app',
       component: Layout,
       children: [
-        { path: '', redirect: '/dashboard' },
+        { path: '', redirect: '/app/dashboard' },
         { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { title: '仪表盘' } },
         { path: 'calendar', name: 'calendar', component: CalendarViews, meta: { title: '日程' } },
         { path: 'projects', name: 'projects', component: ProjectsView, meta: { title: '项目' } },
