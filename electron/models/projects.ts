@@ -72,7 +72,12 @@ export class ProjectsDao {
 
   delete(id: number): void {
     const db = DatabaseManager.getDatabase()
-    db.prepare(`DELETE FROM projects WHERE id = ?`).run(id)
+    const exec = db.transaction((pid: number) => {
+      // 删除关联任务（即使外键未启用也能保证清理）
+      db.prepare(`DELETE FROM tasks WHERE project_id = ?`).run(pid)
+      db.prepare(`DELETE FROM projects WHERE id = ?`).run(pid)
+    })
+    exec(id)
   }
 }
 
