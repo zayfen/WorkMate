@@ -31,6 +31,60 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('projects:set-archived', { id, archived }) as Promise<boolean>,
   deleteProject: (id: number) =>
     ipcRenderer.invoke('projects:delete', { id }) as Promise<boolean>,
+  // Tasks
+  listTasks: (filters?: {
+    statuses?: Array<'todo' | 'in_progress' | 'done'>
+    priorities?: Array<'low' | 'medium' | 'high'>
+    projectIds?: number[]
+    due?: 'today' | 'this_week' | 'this_month' | 'all'
+    includeDone?: boolean
+  }) => ipcRenderer.invoke('tasks:list', filters ?? {}) as Promise<Array<{
+    id: number
+    project_id: number
+    title: string
+    description: string | null
+    participants: string[]
+    due_date: number | null
+    priority: 'low' | 'medium' | 'high'
+    status: 'todo' | 'in_progress' | 'done'
+    note: string | null
+    created_at: number
+    updated_at: number | null
+  }>>,
+  createTask: (payload: {
+    project_id: number
+    title: string
+    description?: string | null
+    participants?: string[]
+    due_date?: number | null
+    priority?: 'low' | 'medium' | 'high'
+    status?: 'todo' | 'in_progress' | 'done'
+    note?: string | null
+  }) => ipcRenderer.invoke('tasks:create', payload) as Promise<{
+    id: number
+    project_id: number
+    title: string
+    description: string | null
+    participants: string[]
+    due_date: number | null
+    priority: 'low' | 'medium' | 'high'
+    status: 'todo' | 'in_progress' | 'done'
+    note: string | null
+    created_at: number
+    updated_at: number | null
+  } | null>,
+  updateTask: (payload: {
+    id: number
+    project_id?: number
+    title?: string
+    description?: string | null
+    participants?: string[]
+    due_date?: number | null
+    priority?: 'low' | 'medium' | 'high'
+    status?: 'todo' | 'in_progress' | 'done'
+    note?: string | null
+  }) => ipcRenderer.invoke('tasks:update', payload) as Promise<boolean>,
+  deleteTask: (id: number) => ipcRenderer.invoke('tasks:delete', { id }) as Promise<boolean>,
   getUserProfile: () => ipcRenderer.invoke('user:get-profile') as Promise<{
     id: number
     name: string

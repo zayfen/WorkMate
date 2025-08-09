@@ -28,6 +28,60 @@ declare global {
         updateProject?: (payload: { id: number; title?: string; description?: string | null; estimated_end_at?: number | null; participants?: string[] }) => Promise<boolean>
         setProjectArchived?: (id: number, archived: boolean) => Promise<boolean>
         deleteProject?: (id: number) => Promise<boolean>
+          // Tasks
+          listTasks?: (filters?: {
+            statuses?: Array<'todo' | 'in_progress' | 'done'>
+            priorities?: Array<'low' | 'medium' | 'high'>
+            projectIds?: number[]
+            due?: 'today' | 'this_week' | 'this_month' | 'all'
+            includeDone?: boolean
+          }) => Promise<Array<{
+            id: number
+            project_id: number
+            title: string
+            description: string | null
+            participants: string[]
+            due_date: number | null
+            priority: 'low' | 'medium' | 'high'
+            status: 'todo' | 'in_progress' | 'done'
+            note: string | null
+            created_at: number
+            updated_at: number | null
+          }>>
+          createTask?: (payload: {
+            project_id: number
+            title: string
+            description?: string | null
+            participants?: string[]
+            due_date?: number | null
+            priority?: 'low' | 'medium' | 'high'
+            status?: 'todo' | 'in_progress' | 'done'
+            note?: string | null
+          }) => Promise<{
+            id: number
+            project_id: number
+            title: string
+            description: string | null
+            participants: string[]
+            due_date: number | null
+            priority: 'low' | 'medium' | 'high'
+            status: 'todo' | 'in_progress' | 'done'
+            note: string | null
+            created_at: number
+            updated_at: number | null
+          } | null>
+          updateTask?: (payload: {
+            id: number
+            project_id?: number
+            title?: string
+            description?: string | null
+            participants?: string[]
+            due_date?: number | null
+            priority?: 'low' | 'medium' | 'high'
+            status?: 'todo' | 'in_progress' | 'done'
+            note?: string | null
+          }) => Promise<boolean>
+          deleteTask?: (id: number) => Promise<boolean>
       getAppVersion?: () => Promise<string>
       getUserProfile?: () => Promise<{
         id: number

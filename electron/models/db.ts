@@ -113,9 +113,39 @@ function runMigrations(db: SqliteDatabase): void {
     );
   `)
 
+  // tasks extra columns (idempotent migrations)
+  try {
+    const taskColumns = db.prepare(`PRAGMA table_info(tasks)`).all() as Array<{ name: string }>
+    const hasDescription = taskColumns.some((c) => c.name === 'description')
+    const hasParticipants = taskColumns.some((c) => c.name === 'participants')
+    const hasDueDate = taskColumns.some((c) => c.name === 'due_date')
+    const hasPriority = taskColumns.some((c) => c.name === 'priority')
+    const hasNote = taskColumns.some((c) => c.name === 'note')
+
+    if (!hasDescription) {
+      db.exec(`ALTER TABLE tasks ADD COLUMN description TEXT`)
+    }
+    if (!hasParticipants) {
+      db.exec(`ALTER TABLE tasks ADD COLUMN participants TEXT DEFAULT '[]'`)
+    }
+    if (!hasDueDate) {
+      db.exec(`ALTER TABLE tasks ADD COLUMN due_date INTEGER`)
+    }
+    if (!hasPriority) {
+      db.exec(`ALTER TABLE tasks ADD COLUMN priority TEXT NOT NULL DEFAULT 'medium'`)
+    }
+    if (!hasNote) {
+      db.exec(`ALTER TABLE tasks ADD COLUMN note TEXT`)
+    }
+  } catch {
+    // ignore migration errors to keep app usable
+  }
+
   // helpful indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
+    CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+    CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
     CREATE INDEX IF NOT EXISTS idx_projects_archived ON projects(archived);
   `)
 }

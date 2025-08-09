@@ -2733,6 +2733,11 @@ minizlib@^2.1.1, minizlib@^2.1.2:
     minipass "^3.0.0"
     yallist "^4.0.0"
 
+mitt@^2.1.0:
+  version "2.1.0"
+  resolved "https://repo.huaweicloud.com/repository/npm/mitt/-/mitt-2.1.0.tgz#f740577c23176c6205b121b2973514eade1b2230"
+  integrity sha512-ILj2TpLiysu2wkBbWjAmww7TkZb65aiQO+DkVdUTBpBXq+MHYiETENkKFMtsJZX1Lf4pe4QOrTSjIfUwN5lRdg==
+
 mkdirp-classic@^0.5.2, mkdirp-classic@^0.5.3:
   version "0.5.3"
   resolved "https://repo.huaweicloud.com/repository/npm/mkdirp-classic/-/mkdirp-classic-0.5.3.tgz#fa10c9115cc6d8865be221ba47ee9bed78601113"
@@ -3932,6 +3937,16 @@ vue-component-type-helpers@^2.0.0:
   resolved "https://repo.huaweicloud.com/repository/npm/vue-component-type-helpers/-/vue-component-type-helpers-2.2.12.tgz#5014787aad185a22f460ad469cc51f14524308bc"
   integrity sha512-YbGqHZ5/eW4SnkPNR44mKVc6ZKQoRs/Rux1sxC6rdwXb4qpbOSYfDr9DsTHolOTGmIKgM9j141mZbBeg05R1pw==
 
+vue-observe-visibility@^2.0.0-alpha.1:
+  version "2.0.0-alpha.1"
+  resolved "https://repo.huaweicloud.com/repository/npm/vue-observe-visibility/-/vue-observe-visibility-2.0.0-alpha.1.tgz#1e4eda7b12562161d58984b7e0dea676d83bdb13"
+  integrity sha512-flFbp/gs9pZniXR6fans8smv1kDScJ8RS7rEpMjhVabiKeq7Qz3D9+eGsypncjfIyyU84saU88XZ0zjbD6Gq/g==
+
+vue-resize@^2.0.0-alpha.1:
+  version "2.0.0-alpha.1"
+  resolved "https://repo.huaweicloud.com/repository/npm/vue-resize/-/vue-resize-2.0.0-alpha.1.tgz#43eeb79e74febe932b9b20c5c57e0ebc14e2df3a"
+  integrity sha512-7+iqOueLU7uc9NrMfrzbG8hwMqchfVfSzpVlCMeJQe4pyibqyoifDNbKTZvwxZKDvGkB+PdFeKvnGZMoEb8esg==
+
 vue-router@^4.4.3:
   version "4.5.1"
   resolved "https://repo.huaweicloud.com/repository/npm/vue-router/-/vue-router-4.5.1.tgz#47bffe2d3a5479d2886a9a244547a853aa0abf69"
@@ -3943,6 +3958,15 @@ vue-toastification@^2.0.0-rc.5:
   version "2.0.0-rc.5"
   resolved "https://repo.huaweicloud.com/repository/npm/vue-toastification/-/vue-toastification-2.0.0-rc.5.tgz#92798604d806ae473cfb76ed776fae294280f8f8"
   integrity sha512-q73e5jy6gucEO/U+P48hqX+/qyXDozAGmaGgLFm5tXX4wJBcVsnGp4e/iJqlm9xzHETYOilUuwOUje2Qg1JdwA==
+
+vue-virtual-scroller@^2.0.0-beta.8:
+  version "2.0.0-beta.8"
+  resolved "https://repo.huaweicloud.com/repository/npm/vue-virtual-scroller/-/vue-virtual-scroller-2.0.0-beta.8.tgz#eeceda57e4faa5ba1763994c873923e2a956898b"
+  integrity sha512-b8/f5NQ5nIEBRTNi6GcPItE4s7kxNHw2AIHLtDp+2QvqdTjVN0FgONwX9cr53jWRgnu+HRLPaWDOR2JPI5MTfQ==
+  dependencies:
+    mitt "^2.1.0"
+    vue-observe-visibility "^2.0.0-alpha.1"
+    vue-resize "^2.0.0-alpha.1"
 
 vue@^3.4.38:
   version "3.5.18"

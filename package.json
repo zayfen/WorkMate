@@ -30,7 +30,8 @@
     "better-sqlite3": "^12.2.0",
     "vue": "^3.4.38",
     "vue-router": "^4.4.3",
-    "vue-toastification": "^2.0.0-rc.5"
+    "vue-toastification": "^2.0.0-rc.5",
+    "vue-virtual-scroller": "^2.0.0-beta.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2",

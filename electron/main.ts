@@ -5,7 +5,7 @@ import { DatabaseManager } from './models/db'
 import { UsersDao } from './models/users'
 import { SettingsDao } from './models/settings'
 import { ProjectsDao } from './models/projects'
-import { TasksDao } from './models/tasks'
+import { TasksDao, TaskPriority, TaskStatus, TaskListDue } from './models/tasks'
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
@@ -228,4 +228,80 @@ function safeParseJsonArray(value: string): string[] {
     return []
   }
 }
+
+// Tasks handlers
+ipcMain.handle('tasks:list', async (_event, payload: {
+  statuses?: TaskStatus[]
+  priorities?: TaskPriority[]
+  projectIds?: number[]
+  due?: TaskListDue
+  includeDone?: boolean
+}) => {
+  const tasksDao = new TasksDao()
+  const filters = {
+    statuses: Array.isArray(payload?.statuses) ? payload?.statuses?.filter((s): s is TaskStatus => s === 'todo' || s === 'in_progress' || s === 'done') : undefined,
+    priorities: Array.isArray(payload?.priorities) ? payload?.priorities?.filter((p): p is TaskPriority => p === 'low' || p === 'medium' || p === 'high') : undefined,
+    projectIds: Array.isArray(payload?.projectIds) ? payload?.projectIds?.map((n) => Number(n)).filter((n) => Number.isFinite(n)) : undefined,
+    due: payload?.due === 'today' || payload?.due === 'this_week' || payload?.due === 'this_month' || payload?.due === 'all' ? payload?.due : undefined,
+    includeDone: Boolean(payload?.includeDone)
+  }
+  return tasksDao.list(filters)
+})
+
+ipcMain.handle('tasks:create', async (_event, payload: {
+  project_id: number
+  title: string
+  description?: string | null
+  participants?: string[]
+  due_date?: number | null
+  priority?: TaskPriority
+  status?: TaskStatus
+  note?: string | null
+}) => {
+  const tasksDao = new TasksDao()
+  const id = tasksDao.create({
+    project_id: Number(payload?.project_id),
+    title: String(payload?.title || '').slice(0, 200) || '未命名任务',
+    description: payload?.description ?? null,
+    participants: Array.isArray(payload?.participants) ? payload?.participants?.slice(0, 50) : [],
+    due_date: typeof payload?.due_date === 'number' ? payload?.due_date : null,
+    priority: payload?.priority === 'low' || payload?.priority === 'medium' || payload?.priority === 'high' ? payload?.priority : 'medium',
+    status: payload?.status === 'todo' || payload?.status === 'in_progress' || payload?.status === 'done' ? payload?.status : 'todo',
+    note: payload?.note ?? null
+  })
+  return tasksDao.getById(id)
+})
+
+ipcMain.handle('tasks:update', async (_event, payload: {
+  id: number
+  project_id?: number
+  title?: string
+  description?: string | null
+  participants?: string[]
+  due_date?: number | null
+  priority?: TaskPriority
+  status?: TaskStatus
+  note?: string | null
+}) => {
+  const id = Number(payload?.id)
+  if (!id) return false
+  const tasksDao = new TasksDao()
+  return tasksDao.update(id, {
+    project_id: typeof payload?.project_id === 'number' ? payload?.project_id : undefined,
+    title: typeof payload?.title === 'string' ? payload?.title : undefined,
+    description: payload?.description,
+    participants: Array.isArray(payload?.participants) ? payload?.participants : undefined,
+    due_date: typeof payload?.due_date === 'number' ? payload?.due_date : payload?.due_date === null ? null : undefined,
+    priority: payload?.priority,
+    status: payload?.status,
+    note: payload?.note
+  })
+})
+
+ipcMain.handle('tasks:delete', async (_event, payload: { id: number }) => {
+  const id = Number(payload?.id)
+  if (!id) return false
+  const tasksDao = new TasksDao()
+  return tasksDao.delete(id)
+})
 
