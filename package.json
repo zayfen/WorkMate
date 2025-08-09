@@ -1,0 +1,71 @@
+{
+  "name": "workmate",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Electron + Vue3 + TypeScript + Vite + Router with Vitest scaffold",
+  "main": "dist-electron/main/index.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:electron": "vite build --config vite.electron.config.ts",
+    "preview": "vite preview",
+    "start": "electron dist-electron/main/index.cjs",
+    "dist": "yarn build && yarn build:electron && electron-builder -mwl",
+    "dist:mac": "yarn build && yarn build:electron && electron-builder --mac dmg",
+    "dist:win": "yarn build && yarn build:electron && electron-builder --win nsis",
+    "dist:linux": "yarn build && yarn build:electron && electron-builder --linux deb",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.12",
+    "@vitejs/plugin-vue": "^5.1.2",
+    "@vue/test-utils": "^2.4.6",
+    "electron-builder": "^24.13.3",
+    "electron": "30.5.1",
+    "jsdom": "^24.1.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.1",
+    "vite-plugin-electron": "^0.28.8",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vitest": "^2.0.5"
+  },
+  "build": {
+    "appId": "com.workmate.app",
+    "productName": "WorkMate",
+    "asar": true,
+    "files": [
+      "dist/**",
+      "dist-electron/**",
+      "package.json"
+    ],
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.productivity",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": ["deb"],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "directories": {
+      "buildResources": "build"
+    }
+  }
+}
