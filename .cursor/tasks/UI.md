@@ -140,7 +140,7 @@
   - 行高 `44px`，无表头边框
   - 列：复选框、标题、项目、负责人头像、截止时间、优先级点
 - 顶部 `filter-bar`：
-  - 状态：`status-segmented-control`（全部/未开始/进行中/完成/延期）
+  - 状态：`segmented-control`（全部/未开始/进行中/完成/延期）
   - 优先级：三个彩色点可选
   - 标签：输入框 + 自动补全
   - 项目：下拉选择
@@ -164,7 +164,7 @@
 
 ### **报告生成器（report-generator）**
 - `report-config-panel`：
-  - 报告类型：`type-segmented-control`（日/周/月/年）
+  - 报告类型：`segmented-control`（日/周/月/年）
   - 日期范围：`date-range-picker`
   - 过滤器：项目、状态
   - `generate-report-btn`（蓝色）
@@ -262,12 +262,51 @@
 ## **交付给 Cursor 的建议**
 
 - 使用 **Vue 3 + Vite + Tailwind CSS** 实现
-- **文件名 kebab-case**：
-  - `dashboard-view.vue`
-  - `calendar-views.vue`
-  - `task-editor-modal.vue`
-  - `lan-members-panel.vue`
-  - `system-notification.vue`
+- **文件名 kebab-case（含实际路径）**：
+  - `src/views/about-view/about-view.vue`
+  - `src/views/dashboard-view/dashboard-view.vue`
+  - `src/views/calendar-views/calendar-views.vue`
+  - `src/views/projects-view/projects-view.vue`
+  - `src/views/tasks-view/tasks-view.vue`
+  - `src/views/reports-view/reports-view.vue`
+  - `src/views/messages-view/messages-view.vue`
+  - `src/views/user-profile-view/user-profile-view.vue`
+  - `src/views/settings-view/settings-view.vue`
+  - `src/views/home-view/home-view.vue`
+  - `src/views/layout.vue`
+  - `src/components/task-editor-modal/task-editor-modal.vue`
+  - `src/components/lan-members-panel/lan-members-panel.vue`
+
+- **组件（含实际路径）**：
+  - `src/components/chat-window/chat-window.vue`
+  - `src/components/circular-progress/circular-progress.vue`
+  - `src/components/completion-count/completion-count.vue`
+  - `src/components/conversation-list/conversation-list.vue`
+  - `src/components/day-view/day-view.vue`
+  - `src/components/event-chip/event-chip.vue`
+  - `src/components/export-buttons/export-buttons.vue`
+  - `src/components/export-settings/export-settings.vue`
+  - `src/components/filter-bar/filter-bar.vue`
+  - `src/components/lan-members-panel/lan-members-panel.vue`
+  - `src/components/lan-settings/lan-settings.vue`
+  - `src/components/message-input/message-input.vue`
+  - `src/components/month-view/month-view.vue`
+  - `src/components/notifications-settings/notifications-settings.vue`
+  - `src/components/projects-list/projects-list.vue`
+  - `src/components/quick-actions/quick-actions.vue`
+  - `src/components/report-generator/report-generator.vue`
+  - `src/components/report-preview/report-preview.vue`
+  - `src/components/segmented-control/segmented-control.vue`
+  - `src/components/sidebar-nav/sidebar-nav.vue`
+  - `src/components/task-editor-modal/task-editor-modal.vue`
+  - `src/components/task-item-simple/task-item-simple.vue`
+  - `src/components/tasks-list/tasks-list.vue`
+  - `src/components/today-tasks-card/today-tasks-card.vue`
+  - `src/components/trend-badge/trend-badge.vue`
+  - `src/components/upcoming-alerts/upcoming-alerts.vue`
+  - `src/components/week-view/week-view.vue`
+  - `src/components/weekly-stats/weekly-stats.vue`
+  - `src/components/year-view/year-view.vue`
 - **组件名 kebab-case**：
   - `<today-tasks-card />`
   - `<event-chip />`

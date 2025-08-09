@@ -12,13 +12,13 @@
     - 测试或 Postman 能创、改、删、查 成功。
 - Task 3.1.2 实现任务编辑 UI（Create/Edit/Delete）
   - 步骤：
-    1) 新建 `src/components/TaskEditor.vue`（字段：标题、描述、startAt、dueAt、status、priority、tags、assignee）。
+    1) 新建/完善 `src/components/task-editor-modal/task-editor-modal.vue`（字段：标题、描述、startAt、dueAt、status、priority、tags、assignee）。
     2) 本地校验：标题必填；开始时间 <= 结束时间。
   - 验收标准：
     - 保存创建新记录，触发事件 `task-saved`。
 - Task 3.1.3 实现项目管理 UI
   - 步骤：
-    1) 新建 `ProjectList.vue`（或视图），支持创建/删除并关联任务。
+    1) 新建/完善 `src/components/projects-list/projects-list.vue` 组件，并在 `src/views/projects-view/projects-view.vue` 视图中集成；支持创建/删除并关联任务。
     2) 删除项目时提示并可选择级联删除或转移任务。
   - 验收标准：
     - 项目 CRUD 正常，关联逻辑正确。

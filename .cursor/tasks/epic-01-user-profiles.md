@@ -14,7 +14,7 @@
     - 可创建、读取、更新用户记录（含单测）。
 - Task 1.1.2 UI：个人资料页
   - 步骤：
-    1) 新建 `src/views/UserProfile.vue`，支持编辑头像、姓名、备注。
+    1) 新建 `src/views/user-profile-view/user-profile-view.vue`，支持编辑头像、姓名、备注。
     2) 保存时写入 DB；加载时读取 DB。
   - 验收标准：
     - UI 可保存与读取；刷新后仍保留。

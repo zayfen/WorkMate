@@ -13,6 +13,7 @@ const items = computed<NavItem[]>(() => [
   { label: '任务', path: '/app/tasks', icon: '✅' },
   { label: '报告', path: '/app/reports', icon: '📊' },
   { label: '消息', path: '/app/messages', icon: '💬' },
+  { label: '用户资料', path: '/app/user', icon: '👤' },
   { label: '设置', path: '/app/settings', icon: '⚙️' }
 ])
 

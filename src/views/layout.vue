@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import SidebarNav from '@/components/sidebar-nav/sidebar-nav.vue'
 import LanMembersPanel from '@/components/lan-members-panel/lan-members-panel.vue'
-
-const route = useRoute()
-const title = computed(() => (route.meta?.title as string) || 'WorkMate')
 </script>
 
 <template>
@@ -17,9 +12,6 @@ const title = computed(() => (route.meta?.title as string) || 'WorkMate')
       </div>
     </aside>
     <section class="main">
-      <header class="main-header">
-        <h1>{{ title }}</h1>
-      </header>
       <div class="content">
         <RouterView />
       </div>
@@ -34,6 +26,7 @@ const title = computed(() => (route.meta?.title as string) || 'WorkMate')
   grid-template-columns: 200px 1fr;
   height: 100vh;
   background: #f2f2f7;
+  overflow: hidden;
 }
 .sidebar {
   display: flex;
@@ -50,16 +43,9 @@ const title = computed(() => (route.meta?.title as string) || 'WorkMate')
   display: flex;
   flex-direction: column;
 }
-.main-header {
-  padding: 16px 24px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-}
-.main-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-}
 .content {
+  box-sizing: border-box;
+  height: 100vh;
   padding: 24px;
 }
 </style>
