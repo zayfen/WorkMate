@@ -6,68 +6,52 @@ import renderer from 'vite-plugin-electron-renderer'
 
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve'
-  const enableElectronBuild = isDev || process.env.ELECTRON_BUILD === '1'
+  const enableElectronBuild = !isDev && process.env.ELECTRON_BUILD === '1'
   return {
     // 使用相对资源路径，确保通过 file:// 协议加载时资源可被正确解析
     base: './',
     plugins: [
       vue(),
-      ...(enableElectronBuild
-        ? [
-            electron({
-        main: {
-          entry: 'electron/main.ts',
-          onstart({ startup }) {
-            // 自动启动 Electron，使用 package.json 的 main 字段
-            startup()
-          },
-          vite: {
-            appType: 'custom',
-            build: {
-              ssr: true,
-              outDir: 'dist-electron/main',
-              target: 'node20',
-              sourcemap: true,
-              rollupOptions: {
-                input: 'electron/main.ts',
-                output: {
-                  format: 'cjs',
-                  entryFileNames: 'index.cjs'
-                }
-              }
-            }
-          }
-        },
-        preload: {
-          input: {
-            preload: 'electron/preload.ts'
-          },
-          vite: {
-            appType: 'custom',
-            plugins: [vue()],
-            build: {
-              ssr: true,
-              outDir: 'dist-electron/preload',
-              target: 'node20',
-              sourcemap: 'inline',
-              rollupOptions: {
-                input: 'electron/preload.ts',
-                output: {
-                  format: 'cjs',
-                  entryFileNames: 'preload.cjs'
+      // 仅在显式构建 Electron 时启用插件；开发期只保留渲染层插件
+      ...(enableElectronBuild ? [
+        electron({
+          main: {
+            entry: 'electron/main.ts',
+            vite: {
+              appType: 'custom',
+              build: {
+                ssr: true,
+                outDir: 'dist-electron/main',
+                target: 'node20',
+                sourcemap: true,
+                rollupOptions: {
+                  external: ['electron', 'better-sqlite3'],
+                  input: 'electron/main.ts',
+                  output: { format: 'cjs', entryFileNames: 'index.cjs' }
                 }
               }
             }
           },
-          onstart({ reload }) {
-            // 预加载变更时，无需重启主进程，直接刷新渲染进程
-            reload()
+          preload: {
+            input: { preload: 'electron/preload.ts' },
+            vite: {
+              appType: 'custom',
+              build: {
+                ssr: true,
+                outDir: 'dist-electron/preload',
+                target: 'node20',
+                sourcemap: 'inline',
+                rollupOptions: {
+                  external: ['electron'],
+                  input: 'electron/preload.ts',
+                  output: { format: 'cjs', entryFileNames: 'preload.cjs' }
+                }
+              }
+            }
           }
-        }
-            })
-            , renderer() // 开发期为渲染进程注入 Electron/Node 能力，并支持热更新
-          ]
-        : [])
+        }),
+        renderer()
+      ] : [renderer()])
     ],
     resolve: {
       alias: {
