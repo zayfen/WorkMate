@@ -8,8 +8,8 @@ export default defineConfig({
     target: 'node20',
     sourcemap: true,
     ssr: true,
-    rollupOptions: {
-      external: ['electron'],
+      rollupOptions: {
+        external: ['electron', 'better-sqlite3'],
       input: {
         main: 'electron/main.ts',
         preload: 'electron/preload.ts'
