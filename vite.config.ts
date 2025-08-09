@@ -2,6 +2,7 @@ import path from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import electron from 'vite-plugin-electron'
+import renderer from 'vite-plugin-electron-renderer'
 
 export default defineConfig(({ command }) => {
   const isDev = command === 'serve'
@@ -57,9 +58,14 @@ export default defineConfig(({ command }) => {
                 }
               }
             }
+          },
+          onstart({ reload }) {
+            // 预加载变更时，无需重启主进程，直接刷新渲染进程
+            reload()
           }
         }
             })
+            , renderer() // 开发期为渲染进程注入 Electron/Node 能力，并支持热更新
           ]
         : [])
     ],
