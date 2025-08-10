@@ -48,6 +48,8 @@ export class UdpLanService {
         } else if (packet.type === 'chat') {
           // ignore messages from self
           if (packet.from === this.deviceId) return
+          // if message is direct to someone else, ignore
+          if (packet.to && packet.to !== this.deviceId) return
           this.onChatHandlers.forEach((h) => h(packet))
         }
       })

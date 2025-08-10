@@ -11,11 +11,17 @@ export default defineConfig(({ command }) => {
     // 使用相对资源路径，确保通过 file:// 协议加载时资源可被正确解析
     base: './',
     plugins: [
-      vue(),
+      vue({
+        template: {
+          compilerOptions: {
+            isCustomElement: (tag) => tag === 'vue-advanced-chat' || tag === 'emoji-picker'
+          }
+        }
+      }),
       // 仅在显式构建 Electron 时启用插件；开发期只保留渲染层插件
       ...(enableElectronBuild ? [
-        electron({
-          main: {
+        electron([
+          {
             entry: 'electron/main.ts',
             vite: {
               appType: 'custom',
@@ -32,8 +38,8 @@ export default defineConfig(({ command }) => {
               }
             }
           },
-          preload: {
-            input: { preload: 'electron/preload.ts' },
+          {
+            entry: 'electron/preload.ts',
             vite: {
               appType: 'custom',
               build: {
@@ -49,7 +55,7 @@ export default defineConfig(({ command }) => {
               }
             }
           }
-        }),
+        ]),
         renderer()
       ] : [renderer()])
     ],

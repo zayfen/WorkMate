@@ -56,7 +56,7 @@ export class MessagesDao {
     const rows = db
       .prepare(
         `SELECT * FROM messages
-         WHERE day_key = ? AND (
+         WHERE day_key = @day_key AND (
            (from_device_id = @a AND (to_device_id = @b OR to_device_id IS NULL)) OR
            (from_device_id = @b AND (to_device_id = @a OR to_device_id IS NULL))
          )
@@ -64,6 +64,34 @@ export class MessagesDao {
       )
       .all({ a: deviceIdA, b: deviceIdB, day_key }) as MessageRecord[]
     return rows
+  }
+
+  listBroadcastToday(): MessageRecord[] {
+    const db = DatabaseManager.getDatabase()
+    const day_key = formatDayKey(Date.now())
+    const rows = db
+      .prepare(
+        `SELECT * FROM messages WHERE day_key = ? AND to_device_id IS NULL ORDER BY ts ASC`
+      )
+      .all(day_key) as MessageRecord[]
+    return rows
+  }
+
+  getLastWithPeer(deviceIdA: string, deviceIdB: string): MessageRecord | null {
+    const db = DatabaseManager.getDatabase()
+    const day_key = formatDayKey(Date.now())
+    const row = db
+      .prepare(
+        `SELECT * FROM messages
+         WHERE day_key = @day_key AND (
+           (from_device_id = @a AND (to_device_id = @b OR to_device_id IS NULL)) OR
+           (from_device_id = @b AND (to_device_id = @a OR to_device_id IS NULL))
+         )
+         ORDER BY ts DESC
+         LIMIT 1`
+      )
+      .get({ a: deviceIdA, b: deviceIdB, day_key }) as MessageRecord | undefined
+    return row ?? null
   }
 
   purgeNotToday(): void {

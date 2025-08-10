@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* vue-advanced-chat styles */
+@import '../../node_modules/vue-advanced-chat/dist/vue-advanced-chat.css';
 
 :root {
   color-scheme: light dark;

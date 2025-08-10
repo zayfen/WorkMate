@@ -133,9 +133,43 @@ ipcMain.handle('lan:list-today-messages', async (_event, payload?: { withDeviceI
       const me = settings.ensureDeviceId()
       return messagesDao.listTodayWithPeer(me, payload.withDeviceId)
     }
-    return messagesDao.listToday()
+    // broadcast view: only messages with to_device_id IS NULL
+    return messagesDao.listBroadcastToday()
   } catch (e) {
     console.error('lan:list-today-messages error', e)
+    return []
+  }
+})
+
+ipcMain.handle('lan:list-conversations', async () => {
+  try {
+    if (!lanService) return []
+    const settings = new SettingsDao()
+    const me = settings.ensureDeviceId()
+    const online = lanService.getOnlinePeers()
+    const messagesDao = new MessagesDao()
+    const list = online
+      .filter(p => p.deviceId !== me)
+      .map((p) => {
+        const last = messagesDao.getLastWithPeer(me, p.deviceId)
+        return {
+          deviceId: p.deviceId,
+          name: p.name,
+          lastMessageText: last?.text ?? '',
+          lastMessageTs: last?.ts ?? 0,
+          lastSeen: p.lastSeen
+        }
+      })
+    // sort: by lastMessageTs desc, fallback to lastSeen desc
+    list.sort((a, b) => {
+      const at = a.lastMessageTs || 0
+      const bt = b.lastMessageTs || 0
+      if (bt !== at) return bt - at
+      return b.lastSeen - a.lastSeen
+    })
+    return list
+  } catch (e) {
+    console.error('lan:list-conversations error', e)
     return []
   }
 })

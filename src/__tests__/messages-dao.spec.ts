@@ -37,6 +37,18 @@ describe('MessagesDao', () => {
     expect(list.length).toBe(1)
     expect(list[0].text).toBe('new')
   })
+
+  it('lists only broadcast messages for today', () => {
+    const dao = new MessagesDao()
+    const now = Date.now()
+    // broadcast
+    dao.create({ from_device_id: 'me', text: 'all', ts: now })
+    // direct
+    dao.create({ from_device_id: 'me', to_device_id: 'peer-1', text: 'dm', ts: now + 1 })
+    const list = dao.listBroadcastToday()
+    expect(list.length).toBe(1)
+    expect(list[0].text).toBe('all')
+  })
 })
 
 

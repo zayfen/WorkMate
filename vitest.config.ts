@@ -3,7 +3,13 @@ import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue({
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag === 'vue-advanced-chat' || tag === 'emoji-picker'
+      }
+    }
+  })],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src')

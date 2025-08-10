@@ -126,6 +126,13 @@ declare global {
         ts: number
         day_key: string
       }>>
+      lanListConversations?: () => Promise<Array<{
+        deviceId: string
+        name: string
+        lastMessageText: string
+        lastMessageTs: number
+        lastSeen: number
+      }>>
     }
   }
 }

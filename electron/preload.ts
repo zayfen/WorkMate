@@ -131,7 +131,14 @@ contextBridge.exposeInMainWorld('api', {
       text: string
       ts: number
       day_key: string
-    }>>
+    }>>,
+  lanListConversations: () => ipcRenderer.invoke('lan:list-conversations') as Promise<Array<{
+    deviceId: string
+    name: string
+    lastMessageText: string
+    lastMessageTs: number
+    lastSeen: number
+  }>>
 })
 
 

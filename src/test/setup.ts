@@ -35,11 +35,22 @@ if (!('api' in window)) {
       lanListOnline: async () => [
         { deviceId: 'peer-1', name: 'Peer 1', lastSeen: Date.now() }
       ],
+      lanListConversations: async () => [
+        { deviceId: 'peer-1', name: 'Peer 1', lastMessageText: 'hi', lastMessageTs: Date.now(), lastSeen: Date.now() }
+      ],
       lanSendChat: async () => true,
       lanListTodayMessages: async () => []
     },
     configurable: true
   })
+}
+
+// vue-advanced-chat 在 JSDOM 下需要 AudioContext，提供最小 polyfill
+if (!(window as any).AudioContext) {
+  ;(window as any).AudioContext = function () {}
+}
+if (!(window as any).webkitAudioContext) {
+  ;(window as any).webkitAudioContext = (window as any).AudioContext
 }
 
 // Mock canvas for Chart.js in JSDOM

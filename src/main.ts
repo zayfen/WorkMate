@@ -4,6 +4,7 @@ import router from './router'
 import './assets/main.css'
 import Toast, { type PluginOptions, POSITION } from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const app = createApp(App)
 app.use(router)
