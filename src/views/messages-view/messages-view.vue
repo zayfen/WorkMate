@@ -29,10 +29,19 @@ type Message = {
 const route = useRoute()
 const currentUserId = ref<string>('me')
 const peerId = computed(() => typeof route.query.to === 'string' ? route.query.to : undefined)
-const rooms = ref<Room[]>([])
+const rooms = ref<Room[]>([
+  {
+    roomId: 'broadcast',
+    roomName: '广播（全员）',
+    avatar: '',
+    users: [],
+    lastMessage: undefined,
+    unreadCount: 0
+  }
+])
 const messages = ref<Message[]>([])
 const messagesLoaded = ref<boolean>(true)
-const roomsLoaded = ref<boolean>(false)
+const roomsLoaded = ref<boolean>(true)
 const usernameOptions = { minUsers: 1, currentUser: true }
 
 async function loadRooms() {
@@ -135,6 +144,7 @@ async function sendMessage(payload: { roomId: string; content: string }) {
 <template>
   <div class="messages-chat">
     <vue-advanced-chat
+      v-if="roomsLoaded"
       :height="'calc(100vh - 140px)'"
       :current-user-id="currentUserId"
       :rooms="rooms"
@@ -142,15 +152,15 @@ async function sendMessage(payload: { roomId: string; content: string }) {
       :room-id="peerId || 'broadcast'"
       :messages="messages"
       :messages-loaded="messagesLoaded"
-      :username-options="usernameOptions"
+      :username-options="JSON.stringify(usernameOptions)"
       :room-info-enabled="true"
       :show-files="false"
       :show-audio="false"
       :show-reaction-emojis="false"
       :single-room="false"
       theme="light"
-      @fetch-messages="(evt: unknown) => fetchMessages(Array.isArray(evt.detail) ? evt.detail[0] : evt.detail)"
-      @send-message="(evt: unknown) => sendMessage(Array.isArray(evt.detail) ? evt.detail[0] : evt.detail)"
+      @fetch-messages="(evt: CustomEvent) => fetchMessages(Array.isArray((evt as any).detail) ? (evt as any).detail[0] : (evt as any).detail)"
+      @send-message="(evt: CustomEvent) => sendMessage(Array.isArray((evt as any).detail) ? (evt as any).detail[0] : (evt as any).detail)"
     />
   </div>
 </template>
