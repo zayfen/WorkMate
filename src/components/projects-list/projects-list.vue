@@ -41,6 +41,68 @@ function formatDate(ts?: number | null): string {
   return `${y}-${m}-${day}`
 }
 
+function calcPercent(item: ProjectItem): number {
+  const total = item.counts?.total ?? (item.counts.todo + item.counts.in_progress + item.counts.done)
+  if (!total) return 0
+  const percent = Math.round((item.counts.done / total) * 100)
+  return Math.max(0, Math.min(100, percent))
+}
+
+function renderDescription(html: string): string {
+  return sanitizeRichText(html)
+}
+
+function sanitizeRichText(html: string): string {
+  try {
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    const allowedTags = new Set(['b','strong','i','em','u','a','p','ul','ol','li','br','span','div','code','pre','blockquote','h1','h2','h3','h4','h5','h6'])
+    const allowedAttrs = new Set(['href','title'])
+
+    const walk = (node: Node) => {
+      // Remove script/style nodes entirely
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element
+        const tag = el.tagName.toLowerCase()
+        if (tag === 'script' || tag === 'style' || tag === 'iframe' || tag === 'object' || tag === 'embed') {
+          el.remove()
+          return
+        }
+        if (!allowedTags.has(tag)) {
+          // unwrap unknown tag but keep its children
+          const parent = el.parentNode
+          if (parent) {
+            while (el.firstChild) parent.insertBefore(el.firstChild, el)
+            el.remove()
+            return
+          }
+        } else {
+          // scrub attributes
+          for (const attr of Array.from(el.attributes)) {
+            const name = attr.name.toLowerCase()
+            if (!allowedAttrs.has(name)) {
+              el.removeAttribute(attr.name)
+              continue
+            }
+            if (name === 'href') {
+              const value = (attr.value || '').trim()
+              const lowered = value.toLowerCase()
+              if (lowered.startsWith('javascript:')) {
+                el.removeAttribute('href')
+              }
+            }
+          }
+        }
+      }
+      for (const child of Array.from(node.childNodes)) walk(child)
+    }
+    walk(doc.body)
+    return doc.body.innerHTML.trim()
+  } catch {
+    return ''
+  }
+}
+
 async function fetchProjects() {
   loading.value = true
   try {
@@ -158,11 +220,14 @@ onMounted(fetchProjects)
 
     <div v-if="loading" class="text-sm text-gray-500">加载中...</div>
     <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      <div v-for="p in filtered" :key="p.id" class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div v-for="p in filtered" :key="p.id" class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
-            <div class="truncate text-base font-semibold" :title="p.title">{{ p.title }}</div>
-            <div v-if="p.description" class="mt-0.5 line-clamp-2 text-xs text-gray-600">{{ p.description }}</div>
+            <div class="flex items-center gap-2">
+              <div class="truncate text-base font-semibold" :title="p.title">{{ p.title }}</div>
+              <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">{{ calcPercent(p) }}% 完成</span>
+            </div>
+            <div v-if="p.description" class="mt-1 break-words text-xs text-gray-600" v-html="renderDescription(p.description)"></div>
           </div>
           <span v-if="p.archived" class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">已归档</span>
         </div>
