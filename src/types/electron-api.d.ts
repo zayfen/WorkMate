@@ -59,6 +59,7 @@ declare global {
             status?: 'todo' | 'in_progress' | 'done'
             note?: string | null
             progress?: number
+            start_time?: number | null
           }) => Promise<{
             id: number
             project_id: number
@@ -70,6 +71,7 @@ declare global {
             status: 'todo' | 'in_progress' | 'done'
             note: string | null
             progress: number
+            start_time: number | null
             created_at: number
             updated_at: number | null
           } | null>
@@ -84,6 +86,7 @@ declare global {
             status?: 'todo' | 'in_progress' | 'done'
             note?: string | null
             progress?: number
+            start_time?: number | null
           }) => Promise<boolean>
           deleteTask?: (id: number) => Promise<boolean>
       getAppVersion?: () => Promise<string>

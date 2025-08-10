@@ -75,7 +75,7 @@ describe('TasksDao', () => {
     expect(monthList.find(t => t.title === 'month')).toBeTruthy()
   })
 
-  it('status done forces progress 100 on create and update', () => {
+  it('status done forces progress 100 on create and update; start_time set when in_progress; forbid todo->done', () => {
     const projects = new ProjectsDao()
     const tasks = new TasksDao()
     const p = projects.create({ title: 'P' })
@@ -92,6 +92,14 @@ describe('TasksDao', () => {
     tasks.update(id2, { status: 'done' })
     row2 = tasks.getById(id2)!
     expect(row2.progress).toBe(100)
+
+    // start_time set when moving to in_progress
+    const id3 = tasks.create({ project_id: p, title: 't3', status: 'todo' })
+    let r3 = tasks.getById(id3)!
+    expect(r3.start_time).toBeNull()
+    tasks.update(id3, { status: 'in_progress' })
+    r3 = tasks.getById(id3)!
+    expect(typeof r3.start_time).toBe('number')
   })
 
   it('inline updates for status/priority/progress', () => {

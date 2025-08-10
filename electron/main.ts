@@ -258,6 +258,7 @@ ipcMain.handle('tasks:create', async (_event, payload: {
   status?: TaskStatus
   note?: string | null
   progress?: number
+  start_time?: number | null
 }) => {
   const tasksDao = new TasksDao()
   const status: TaskStatus = payload?.status === 'todo' || payload?.status === 'in_progress' || payload?.status === 'done' ? payload?.status : 'todo'
@@ -271,7 +272,8 @@ ipcMain.handle('tasks:create', async (_event, payload: {
     priority: payload?.priority === 'low' || payload?.priority === 'medium' || payload?.priority === 'high' ? payload?.priority : 'medium',
     status,
     note: payload?.note ?? null,
-    progress
+    progress,
+    start_time: typeof payload?.start_time === 'number' ? payload?.start_time : undefined
   })
   return tasksDao.getById(id)
 })
@@ -287,6 +289,7 @@ ipcMain.handle('tasks:update', async (_event, payload: {
   status?: TaskStatus
   note?: string | null
   progress?: number
+  start_time?: number | null
 }) => {
   const id = Number(payload?.id)
   if (!id) return false
@@ -300,10 +303,22 @@ ipcMain.handle('tasks:update', async (_event, payload: {
     priority: payload?.priority,
     status: payload?.status,
     note: payload?.note,
-    progress: typeof payload?.progress === 'number' ? payload?.progress : undefined
+    progress: typeof payload?.progress === 'number' ? payload?.progress : undefined,
+    start_time: typeof payload?.start_time === 'number' ? payload?.start_time : undefined
   }
   if (payload?.status === 'done') {
     fields.progress = 100
+  }
+  // prohibit jumping from todo -> done directly
+  if (payload?.status === 'done') {
+    const current = tasksDao.getById(id)
+    if (current && current.status === 'todo') {
+      return false
+    }
+  }
+  // set start_time if moving to in_progress and not provided
+  if (payload?.status === 'in_progress' && fields.start_time === undefined) {
+    fields.start_time = Date.now()
   }
   return tasksDao.update(id, fields)
 })

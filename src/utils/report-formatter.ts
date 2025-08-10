@@ -21,15 +21,16 @@ export function toMarkdown(data: ReportData): string {
   lines.push('')
   lines.push('## 项目明细')
   lines.push('')
-  lines.push('| 项目 | 标题 | 状态 | 优先级 | 截止 | 进度 |')
-  lines.push('| --- | --- | --- | --- | --- | ---: |')
+  lines.push('| 项目 | 标题 | 状态 | 优先级 | 截止 | 进度 | 花费时间 |')
+  lines.push('| --- | --- | --- | --- | --- | ---: | ---: |')
   for (const bucket of data.buckets) {
     for (const t of bucket.tasks) {
       const statusText = t.status === 'done' ? '已完成' : (t.status === 'in_progress' ? '进行中' : '未开始')
       const prioText = t.priority === 'high' ? '高' : (t.priority === 'low' ? '低' : '中')
       const due = t.due_date ? fmtDate(new Date(t.due_date)) : '-'
       const progress = (t as any).progress ?? 0
-      lines.push(`| P${t.project_id} | ${escapeMd(t.title)} | ${statusText} | ${prioText} | ${due} | ${progress}% |`)
+      const spent = formatSpentMd(t as any)
+      lines.push(`| P${t.project_id} | ${escapeMd(t.title)} | ${statusText} | ${prioText} | ${due} | ${progress}% | ${spent} |`)
     }
   }
   lines.push('')
@@ -111,5 +112,17 @@ function symbolForStatus(s: RendererTask['status']): string {
 function pad(n: number): string { return n < 10 ? `0${n}` : String(n) }
 function fmtDate(d: Date): string { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }
 function fmtDateTime(d: Date): string { return `${fmtDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}` }
+
+function formatSpentMd(t: any): string {
+  const s = Number(t.start_time)
+  const c = Number((t as any).completed_at)
+  const now = Date.now()
+  if (t.status === 'todo' || !Number.isFinite(s)) return '0m'
+  const end = t.status === 'done' && Number.isFinite(c) ? c : now
+  const ms = Math.max(0, end - s)
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  return h > 0 ? `${h}h ${m}m` : `${m}m`
+}
 
 

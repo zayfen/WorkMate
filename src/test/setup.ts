@@ -36,4 +36,38 @@ if (!('api' in window)) {
   })
 }
 
+// Mock canvas for Chart.js in JSDOM
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  value: function () {
+    return {
+      canvas: this,
+      // minimal stubs used by Chart.js sizing
+      createLinearGradient: () => ({ addColorStop: () => {} }),
+      measureText: () => ({ width: 0 }),
+      setTransform: () => {},
+      save: () => {},
+      restore: () => {},
+      fillRect: () => {},
+      clearRect: () => {},
+      translate: () => {},
+      scale: () => {},
+      stroke: () => {},
+      fill: () => {},
+      beginPath: () => {},
+      closePath: () => {},
+      moveTo: () => {},
+      lineTo: () => {},
+      arc: () => {},
+      strokeRect: () => {}
+    } as unknown as CanvasRenderingContext2D
+  },
+  configurable: true
+})
+
+// toDataURL mock used by export
+Object.defineProperty(HTMLCanvasElement.prototype, 'toDataURL', {
+  value: () => 'data:image/png;base64,' + btoa('stub'),
+  configurable: true
+})
+
 

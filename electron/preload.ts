@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('api', {
     status?: 'todo' | 'in_progress' | 'done'
     note?: string | null
     progress?: number
+    start_time?: number | null
   }) => ipcRenderer.invoke('tasks:create', payload) as Promise<{
     id: number
     project_id: number
@@ -73,6 +74,7 @@ contextBridge.exposeInMainWorld('api', {
     status: 'todo' | 'in_progress' | 'done'
     note: string | null
     progress: number
+    start_time: number | null
     created_at: number
     updated_at: number | null
   } | null>,
@@ -87,6 +89,7 @@ contextBridge.exposeInMainWorld('api', {
     status?: 'todo' | 'in_progress' | 'done'
     note?: string | null
     progress?: number
+    start_time?: number | null
   }) => ipcRenderer.invoke('tasks:update', payload) as Promise<boolean>,
   deleteTask: (id: number) => ipcRenderer.invoke('tasks:delete', { id }) as Promise<boolean>,
   getUserProfile: () => ipcRenderer.invoke('user:get-profile') as Promise<{

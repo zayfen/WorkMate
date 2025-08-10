@@ -91,7 +91,7 @@ function buildExportHtml(): string {
   .project{border:1px solid #e5e7eb;border-radius:12px;padding:12px}
   .p-head{font-weight:600;margin-bottom:8px;font-size:14px}
   .table{display:grid;gap:6px}
-  .t-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr 1.5fr;align-items:center;gap:8px}
+  .t-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr 1.5fr 1.2fr;align-items:center;gap:8px}
   .t-row.t-head{color:#6b7280;font-size:12px}
   .t-row:not(.t-head){font-size:13px;color:#111827}
   .c-title{line-height:1.3}
@@ -114,13 +114,21 @@ function buildExportHtml(): string {
   htmlParts.push(`<div class="paper"><div class="sec"><div class="sec-title">项目明细</div><div class="projects">`)
   for (const p of projects) {
     htmlParts.push(`<div class="project"><div class="p-head">${safe(p.projectName)}</div><div class="table">`)
-    htmlParts.push(`<div class="t-row t-head"><div class="c-title">标题</div><div class="c-status">状态</div><div class="c-priority">优先级</div><div class="c-due">截止日期</div><div class="c-progress">进度</div></div>`)
+    htmlParts.push(`<div class="t-row t-head"><div class="c-title">标题</div><div class="c-status">状态</div><div class="c-priority">优先级</div><div class="c-due">截止日期</div><div class="c-progress">进度</div><div class="c-spent">花费时间</div></div>`)
     for (const t of p.tasks) {
       const pr = Math.max(0, Math.min(100, (t as any).progress ?? 0))
       const statusText = t.status === 'done' ? '已完成' : (t.status === 'in_progress' ? '进行中' : '未开始')
       const prioText = t.priority === 'high' ? '高' : (t.priority === 'low' ? '低' : '中')
       const due = formatDate(t.due_date)
-      htmlParts.push(`<div class="t-row"><div class="c-title">${safe(t.title)}</div><div class="c-status"><span class="chip ${t.status}">${statusText}</span></div><div class="c-priority"><span class="chip ${t.priority}">${prioText}</span></div><div class="c-due">${safe(due)}</div><div class="c-progress"><div class="progress"><div class="bar" style="width:${pr}%"></div></div><div class="pct">${pr}%</div></div></div>`)
+      const s = Number((t as any).start_time)
+      const c = Number((t as any).completed_at)
+      const now = Date.now()
+      const end = t.status === 'done' && Number.isFinite(c) ? c : now
+      const spentMs = (!Number.isFinite(s) || t.status === 'todo') ? 0 : Math.max(0, end - s)
+      const spentH = Math.floor(spentMs / 3600000)
+      const spentM = Math.floor((spentMs % 3600000) / 60000)
+      const spent = spentH > 0 ? `${spentH}h ${spentM}m` : `${spentM}m`
+      htmlParts.push(`<div class="t-row"><div class="c-title">${safe(t.title)}</div><div class="c-status"><span class="chip ${t.status}">${statusText}</span></div><div class="c-priority"><span class="chip ${t.priority}">${prioText}</span></div><div class="c-due">${safe(due)}</div><div class="c-progress"><div class="progress"><div class="bar" style="width:${pr}%"></div></div><div class="pct">${pr}%</div></div><div class="c-spent">${spent}</div></div>`)
     }
     htmlParts.push(`</div></div>`)
   }
@@ -138,6 +146,18 @@ function formatDate(ts?: number | null): string {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+function spentText(t: any): string {
+  const s = Number(t.start_time)
+  const c = Number((t as any).completed_at)
+  const now = Date.now()
+  if (t.status === 'todo' || !Number.isFinite(s)) return '0h'
+  const end = t.status === 'done' && Number.isFinite(c) ? c : now
+  const ms = Math.max(0, end - s)
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  return h > 0 ? `${h}h ${m}m` : `${m}m`
 }
 </script>
 
@@ -168,6 +188,7 @@ function formatDate(ts?: number | null): string {
                 <div class="c-priority" role="columnheader">优先级</div>
                 <div class="c-due" role="columnheader">截止日期</div>
                 <div class="c-progress" role="columnheader">进度</div>
+                <div class="c-spent" role="columnheader">花费时间</div>
               </div>
               <div class="t-row" v-for="t in p.tasks" :key="t.id" role="row">
                 <div class="c-title" role="cell">{{ t.title }}</div>
@@ -182,6 +203,7 @@ function formatDate(ts?: number | null): string {
                   <div class="progress"><div class="bar" :style="{ width: Math.max(0, Math.min(100, (t as any).progress ?? 0)) + '%' }"></div></div>
                   <div class="pct">{{ Math.max(0, Math.min(100, (t as any).progress ?? 0)) }}%</div>
                 </div>
+                <div class="c-spent" role="cell">{{ spentText(t as any) }}</div>
               </div>
             </div>
           </div>
@@ -213,7 +235,7 @@ function formatDate(ts?: number | null): string {
 .project { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px }
 .p-head { font-weight: 600; margin-bottom: 8px; font-size: 14px }
 .table { display: grid; gap: 6px }
-.t-row { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr 1.5fr; align-items: center; gap: 8px }
+.t-row { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr 1.5fr 1.2fr; align-items: center; gap: 8px }
 .t-row.t-head { color: #6b7280; font-size: 12px }
 .t-row:not(.t-head) { font-size: 13px; color: #111827 }
 .c-title { line-height: 1.3 }

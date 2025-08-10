@@ -14,6 +14,7 @@ export interface TaskRecord {
   status?: TaskStatus
   note?: string | null
   progress?: number
+  start_time?: number | null
   created_at?: number
   updated_at?: number | null
 }
@@ -29,6 +30,7 @@ export interface TaskRow {
   status: TaskStatus
   note: string | null
   progress: number
+  start_time: number | null
   created_at: number
   updated_at: number | null
 }
@@ -71,11 +73,12 @@ export class TasksDao {
   create(task: Omit<TaskRecord, 'id' | 'created_at' | 'updated_at'>): number {
     const db = DatabaseManager.getDatabase()
     const stmt = db.prepare(`
-      INSERT INTO tasks (project_id, title, description, participants, due_date, priority, status, note, progress)
-      VALUES (@project_id, @title, @description, @participants, @due_date, @priority, @status, @note, @progress)
+      INSERT INTO tasks (project_id, title, description, participants, due_date, priority, status, note, progress, start_time)
+      VALUES (@project_id, @title, @description, @participants, @due_date, @priority, @status, @note, @progress, @start_time)
     `)
     const status: TaskStatus = task.status ?? 'todo'
     const progress = status === 'done' ? 100 : clampProgress(task.progress)
+    const startTime = status === 'in_progress' ? (typeof task.start_time === 'number' ? task.start_time : Date.now()) : null
     const info = stmt.run({
       project_id: task.project_id,
       title: (task.title || '未命名任务').slice(0, 200),
@@ -85,7 +88,8 @@ export class TasksDao {
       priority: task.priority ?? 'medium',
       status,
       note: task.note ?? null,
-      progress
+      progress,
+      start_time: startTime
     })
     return Number(info.lastInsertRowid)
   }
@@ -117,6 +121,10 @@ export class TasksDao {
         // force progress to 100 when done
         if (!updates.includes('progress = @progress')) updates.push('progress = @progress')
         params.progress = 100
+      } else if (st === 'in_progress') {
+        // set start_time when moved to in_progress and not set yet
+        if (!updates.includes('start_time = @start_time')) updates.push('start_time = @start_time')
+        params.start_time = typeof (fields as any).start_time === 'number' ? (fields as any).start_time : Date.now()
       }
     }
     if (fields.note !== undefined) { updates.push('note = @note'); params.note = fields.note ?? null }
