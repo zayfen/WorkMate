@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld('api', {
     priority: 'low' | 'medium' | 'high'
     status: 'todo' | 'in_progress' | 'done'
     note: string | null
+    progress: number
     created_at: number
     updated_at: number | null
   }>>,
@@ -60,6 +61,7 @@ contextBridge.exposeInMainWorld('api', {
     priority?: 'low' | 'medium' | 'high'
     status?: 'todo' | 'in_progress' | 'done'
     note?: string | null
+    progress?: number
   }) => ipcRenderer.invoke('tasks:create', payload) as Promise<{
     id: number
     project_id: number
@@ -70,6 +72,7 @@ contextBridge.exposeInMainWorld('api', {
     priority: 'low' | 'medium' | 'high'
     status: 'todo' | 'in_progress' | 'done'
     note: string | null
+    progress: number
     created_at: number
     updated_at: number | null
   } | null>,
@@ -83,6 +86,7 @@ contextBridge.exposeInMainWorld('api', {
     priority?: 'low' | 'medium' | 'high'
     status?: 'todo' | 'in_progress' | 'done'
     note?: string | null
+    progress?: number
   }) => ipcRenderer.invoke('tasks:update', payload) as Promise<boolean>,
   deleteTask: (id: number) => ipcRenderer.invoke('tasks:delete', { id }) as Promise<boolean>,
   getUserProfile: () => ipcRenderer.invoke('user:get-profile') as Promise<{
@@ -107,7 +111,12 @@ contextBridge.exposeInMainWorld('api', {
       device_info: string | null
     } | null>,
   getDeviceId: () => ipcRenderer.invoke('settings:get-device-id') as Promise<string>,
-  chooseAvatar: () => ipcRenderer.invoke('user:choose-avatar') as Promise<string | null>
+  chooseAvatar: () => ipcRenderer.invoke('user:choose-avatar') as Promise<string | null>,
+  // Reports export
+  saveReportText: (content: string, defaultPath?: string, filters?: Array<{ name: string; extensions: string[] }>) =>
+    ipcRenderer.invoke('report:save-text', { content, defaultPath, filters }) as Promise<boolean>,
+  saveReportPdf: (html: string, defaultPath?: string) =>
+    ipcRenderer.invoke('report:save-pdf', { html, defaultPath }) as Promise<boolean>
 })
 
 

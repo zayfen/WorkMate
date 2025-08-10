@@ -121,6 +121,7 @@ function runMigrations(db: SqliteDatabase): void {
     const hasDueDate = taskColumns.some((c) => c.name === 'due_date')
     const hasPriority = taskColumns.some((c) => c.name === 'priority')
     const hasNote = taskColumns.some((c) => c.name === 'note')
+    const hasProgress = taskColumns.some((c) => c.name === 'progress')
 
     if (!hasDescription) {
       db.exec(`ALTER TABLE tasks ADD COLUMN description TEXT`)
@@ -137,6 +138,9 @@ function runMigrations(db: SqliteDatabase): void {
     if (!hasNote) {
       db.exec(`ALTER TABLE tasks ADD COLUMN note TEXT`)
     }
+    if (!hasProgress) {
+      db.exec(`ALTER TABLE tasks ADD COLUMN progress INTEGER NOT NULL DEFAULT 0`)
+    }
   } catch {
     // ignore migration errors to keep app usable
   }
@@ -146,6 +150,7 @@ function runMigrations(db: SqliteDatabase): void {
     CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
     CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
     CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+    CREATE INDEX IF NOT EXISTS idx_tasks_progress ON tasks(progress);
     CREATE INDEX IF NOT EXISTS idx_projects_archived ON projects(archived);
   `)
 }

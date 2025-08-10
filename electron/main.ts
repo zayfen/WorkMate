@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { join, dirname } from 'node:path'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { DatabaseManager } from './models/db'
 import { UsersDao } from './models/users'
 import { SettingsDao } from './models/settings'
@@ -257,8 +257,11 @@ ipcMain.handle('tasks:create', async (_event, payload: {
   priority?: TaskPriority
   status?: TaskStatus
   note?: string | null
+  progress?: number
 }) => {
   const tasksDao = new TasksDao()
+  const status: TaskStatus = payload?.status === 'todo' || payload?.status === 'in_progress' || payload?.status === 'done' ? payload?.status : 'todo'
+  const progress = status === 'done' ? 100 : (typeof payload?.progress === 'number' ? payload?.progress : 0)
   const id = tasksDao.create({
     project_id: Number(payload?.project_id),
     title: String(payload?.title || '').slice(0, 200) || '未命名任务',
@@ -266,8 +269,9 @@ ipcMain.handle('tasks:create', async (_event, payload: {
     participants: Array.isArray(payload?.participants) ? payload?.participants?.slice(0, 50) : [],
     due_date: typeof payload?.due_date === 'number' ? payload?.due_date : null,
     priority: payload?.priority === 'low' || payload?.priority === 'medium' || payload?.priority === 'high' ? payload?.priority : 'medium',
-    status: payload?.status === 'todo' || payload?.status === 'in_progress' || payload?.status === 'done' ? payload?.status : 'todo',
-    note: payload?.note ?? null
+    status,
+    note: payload?.note ?? null,
+    progress
   })
   return tasksDao.getById(id)
 })
@@ -282,11 +286,12 @@ ipcMain.handle('tasks:update', async (_event, payload: {
   priority?: TaskPriority
   status?: TaskStatus
   note?: string | null
+  progress?: number
 }) => {
   const id = Number(payload?.id)
   if (!id) return false
   const tasksDao = new TasksDao()
-  return tasksDao.update(id, {
+  const fields: any = {
     project_id: typeof payload?.project_id === 'number' ? payload?.project_id : undefined,
     title: typeof payload?.title === 'string' ? payload?.title : undefined,
     description: payload?.description,
@@ -294,8 +299,13 @@ ipcMain.handle('tasks:update', async (_event, payload: {
     due_date: typeof payload?.due_date === 'number' ? payload?.due_date : payload?.due_date === null ? null : undefined,
     priority: payload?.priority,
     status: payload?.status,
-    note: payload?.note
-  })
+    note: payload?.note,
+    progress: typeof payload?.progress === 'number' ? payload?.progress : undefined
+  }
+  if (payload?.status === 'done') {
+    fields.progress = 100
+  }
+  return tasksDao.update(id, fields)
 })
 
 ipcMain.handle('tasks:delete', async (_event, payload: { id: number }) => {
@@ -303,5 +313,60 @@ ipcMain.handle('tasks:delete', async (_event, payload: { id: number }) => {
   if (!id) return false
   const tasksDao = new TasksDao()
   return tasksDao.delete(id)
+})
+
+// Report export handlers
+ipcMain.handle('report:save-text', async (_event, payload: { content: string; defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => {
+  if (!mainWindow) return false
+  const res = await dialog.showSaveDialog(mainWindow, {
+    title: '保存报告',
+    defaultPath: payload?.defaultPath ?? 'report.txt',
+    filters: payload?.filters && payload.filters.length > 0 ? payload.filters : [
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  })
+  if (res.canceled || !res.filePath) return false
+  try {
+    writeFileSync(res.filePath, String(payload?.content ?? ''), 'utf8')
+    return true
+  } catch (e) {
+    console.error('Failed to save text file', e)
+    return false
+  }
+})
+
+ipcMain.handle('report:save-pdf', async (_event, payload: { html: string; defaultPath?: string }) => {
+  if (!mainWindow) return false
+  const res = await dialog.showSaveDialog(mainWindow, {
+    title: '导出 PDF',
+    defaultPath: payload?.defaultPath ?? 'report.pdf',
+    filters: [{ name: 'PDF', extensions: ['pdf'] }]
+  })
+  if (res.canceled || !res.filePath) return false
+
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      contextIsolation: true,
+      sandbox: true
+    }
+  })
+  try {
+    const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(String(payload?.html ?? ''))
+    await win.loadURL(dataUrl)
+    const pdfBuffer = await win.webContents.printToPDF({
+      printBackground: true,
+      margins: { marginType: 'default' },
+      pageSize: 'A4',
+      landscape: false
+    })
+    require('node:fs').writeFileSync(res.filePath, pdfBuffer)
+    win.close()
+    return true
+  } catch (e) {
+    console.error('Failed to export PDF', e)
+    try { win.close() } catch {}
+    return false
+  }
 })
 

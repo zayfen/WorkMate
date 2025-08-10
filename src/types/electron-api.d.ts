@@ -45,6 +45,7 @@ declare global {
             priority: 'low' | 'medium' | 'high'
             status: 'todo' | 'in_progress' | 'done'
             note: string | null
+            progress: number
             created_at: number
             updated_at: number | null
           }>>
@@ -57,6 +58,7 @@ declare global {
             priority?: 'low' | 'medium' | 'high'
             status?: 'todo' | 'in_progress' | 'done'
             note?: string | null
+            progress?: number
           }) => Promise<{
             id: number
             project_id: number
@@ -67,6 +69,7 @@ declare global {
             priority: 'low' | 'medium' | 'high'
             status: 'todo' | 'in_progress' | 'done'
             note: string | null
+            progress: number
             created_at: number
             updated_at: number | null
           } | null>
@@ -80,6 +83,7 @@ declare global {
             priority?: 'low' | 'medium' | 'high'
             status?: 'todo' | 'in_progress' | 'done'
             note?: string | null
+            progress?: number
           }) => Promise<boolean>
           deleteTask?: (id: number) => Promise<boolean>
       getAppVersion?: () => Promise<string>
@@ -105,6 +109,9 @@ declare global {
       } | null>
       getDeviceId?: () => Promise<string>
       chooseAvatar?: () => Promise<string | null>
+      // Reports export
+      saveReportText?: (content: string, defaultPath?: string, filters?: Array<{ name: string; extensions: string[] }>) => Promise<boolean>
+      saveReportPdf?: (html: string, defaultPath?: string) => Promise<boolean>
     }
   }
 }

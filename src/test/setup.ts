@@ -27,6 +27,10 @@ if (!('api' in window)) {
       }),
       getDeviceId: async () => 'device-stub-123',
       chooseAvatar: async () => null
+      ,
+      listTasks: async () => [],
+      saveReportText: async () => true,
+      saveReportPdf: async () => true
     },
     configurable: true
   })

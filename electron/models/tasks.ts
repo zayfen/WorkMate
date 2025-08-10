@@ -13,6 +13,7 @@ export interface TaskRecord {
   priority?: TaskPriority
   status?: TaskStatus
   note?: string | null
+  progress?: number
   created_at?: number
   updated_at?: number | null
 }
@@ -27,6 +28,7 @@ export interface TaskRow {
   priority: TaskPriority
   status: TaskStatus
   note: string | null
+  progress: number
   created_at: number
   updated_at: number | null
 }
@@ -69,9 +71,11 @@ export class TasksDao {
   create(task: Omit<TaskRecord, 'id' | 'created_at' | 'updated_at'>): number {
     const db = DatabaseManager.getDatabase()
     const stmt = db.prepare(`
-      INSERT INTO tasks (project_id, title, description, participants, due_date, priority, status, note)
-      VALUES (@project_id, @title, @description, @participants, @due_date, @priority, @status, @note)
+      INSERT INTO tasks (project_id, title, description, participants, due_date, priority, status, note, progress)
+      VALUES (@project_id, @title, @description, @participants, @due_date, @priority, @status, @note, @progress)
     `)
+    const status: TaskStatus = task.status ?? 'todo'
+    const progress = status === 'done' ? 100 : clampProgress(task.progress)
     const info = stmt.run({
       project_id: task.project_id,
       title: (task.title || '未命名任务').slice(0, 200),
@@ -79,8 +83,9 @@ export class TasksDao {
       participants: JSON.stringify(task.participants ?? []),
       due_date: typeof task.due_date === 'number' ? task.due_date : null,
       priority: task.priority ?? 'medium',
-      status: task.status ?? 'todo',
-      note: task.note ?? null
+      status,
+      note: task.note ?? null,
+      progress
     })
     return Number(info.lastInsertRowid)
   }
@@ -104,8 +109,18 @@ export class TasksDao {
     if (fields.participants !== undefined) { updates.push('participants = @participants'); params.participants = JSON.stringify(fields.participants ?? []) }
     if (fields.due_date !== undefined) { updates.push('due_date = @due_date'); params.due_date = typeof fields.due_date === 'number' ? fields.due_date : null }
     if (fields.priority !== undefined) { updates.push('priority = @priority'); params.priority = fields.priority ?? 'medium' }
-    if (fields.status !== undefined) { updates.push('status = @status'); params.status = fields.status ?? 'todo' }
+    if (fields.status !== undefined) {
+      updates.push('status = @status')
+      const st: TaskStatus = fields.status ?? 'todo'
+      params.status = st
+      if (st === 'done') {
+        // force progress to 100 when done
+        if (!updates.includes('progress = @progress')) updates.push('progress = @progress')
+        params.progress = 100
+      }
+    }
     if (fields.note !== undefined) { updates.push('note = @note'); params.note = fields.note ?? null }
+    if (fields.progress !== undefined && params.progress === undefined) { updates.push('progress = @progress'); params.progress = clampProgress(fields.progress) }
     updates.push(`updated_at = strftime('%s','now')*1000`)
 
     if (updates.length === 0) return false
@@ -195,6 +210,12 @@ export class TasksDao {
       return []
     }
   }
+}
+
+function clampProgress(value: unknown): number {
+  const n = typeof value === 'number' ? value : 0
+  if (!Number.isFinite(n)) return 0
+  return Math.min(100, Math.max(0, Math.round(n)))
 }
 
 

@@ -12,6 +12,9 @@
     "build:electron": "vite build --config vite.electron.config.ts",
     "preview": "vite preview",
     "start": "electron dist-electron/main/index.cjs",
+    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
+    "rebuild:native:node": "npm rebuild better-sqlite3",
+    "postinstall": "electron-builder install-app-deps",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
@@ -22,13 +25,16 @@
     "dist:mac": "yarn build && yarn build:electron && electron-builder --mac dmg",
     "dist:win": "yarn build && yarn build:electron && electron-builder --win nsis",
     "dist:linux": "yarn build && yarn build:electron && electron-builder --linux deb",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "yarn rebuild:native:node && vitest run",
+    "test:watch": "yarn rebuild:native:node && vitest",
     "test:ui": "vitest --ui"
   },
   "dependencies": {
     "better-sqlite3": "^12.2.0",
+    "chart.js": "4.4.4",
     "vue": "^3.4.38",
+    "vue-chartjs": "5.3.1",
+    "vue-datepicker-next": "1.0.2",
     "vue-router": "^4.4.3",
     "vue-toastification": "^2.0.0-rc.5",
     "vue-virtual-scroller": "^2.0.0-beta.8"

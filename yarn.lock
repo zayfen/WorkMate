@@ -312,6 +312,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@kurkle/color@^0.3.0":
+  version "0.3.4"
+  resolved "https://repo.huaweicloud.com/repository/npm/@kurkle/color/-/color-0.3.4.tgz#4d4ff677e1609214fc71c580125ddddd86abcabf"
+  integrity sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==
+
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
   resolved "https://repo.huaweicloud.com/repository/npm/@malept/cross-spawn-promise/-/cross-spawn-promise-1.1.1.tgz#504af200af6b98e198bce768bc1730c6936ae01d"
@@ -1209,6 +1214,13 @@ chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.2:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
+chart.js@4.4.4:
+  version "4.4.4"
+  resolved "https://repo.huaweicloud.com/repository/npm/chart.js/-/chart.js-4.4.4.tgz#b682d2e7249f7a0cbb1b1d31c840266ae9db64b7"
+  integrity sha512-emICKGBABnxhMjUjlYRR12PmOXhJ2eJjEHL2/dZlWjxRAZT1D8xplLFq5M0tMQK8ja+wBS/tuVEJB5C6r7VxJA==
+  dependencies:
+    "@kurkle/color" "^0.3.0"
+
 check-error@^2.1.1:
   version "2.1.1"
   resolved "https://repo.huaweicloud.com/repository/npm/check-error/-/check-error-2.1.1.tgz#87eb876ae71ee388fa0471fe423f494be1d96ccc"
@@ -1424,6 +1436,11 @@ data-urls@^5.0.0:
   dependencies:
     whatwg-mimetype "^4.0.0"
     whatwg-url "^14.0.0"
+
+date-format-parse@^0.2.7:
+  version "0.2.7"
+  resolved "https://repo.huaweicloud.com/repository/npm/date-format-parse/-/date-format-parse-0.2.7.tgz#a2f78bca857a821785b48abedd4426c65aa7b918"
+  integrity sha512-/+lyMUKoRogMuTeOVii6lUwjbVlesN9YRYLzZT/g3TEZ3uD9QnpjResujeEqUW+OSNbT7T1+SYdyEkTcRv+KDQ==
 
 debug@4, debug@^4.1.0, debug@^4.1.1, debug@^4.3.1, debug@^4.3.3, debug@^4.3.4, debug@^4.3.7:
   version "4.4.1"
@@ -3932,10 +3949,23 @@ vitest@^2.0.5:
     vite-node "2.1.9"
     why-is-node-running "^2.3.0"
 
+vue-chartjs@5.3.1:
+  version "5.3.1"
+  resolved "https://repo.huaweicloud.com/repository/npm/vue-chartjs/-/vue-chartjs-5.3.1.tgz#73484d569ec4994ba5accd30fe6714ef28e86f5b"
+  integrity sha512-rZjqcHBxKiHrBl0CIvcOlVEBwRhpWAVf6rDU3vUfa7HuSRmGtCslc0Oc8m16oAVuk0erzc1FCtH1VCriHsrz+A==
+
 vue-component-type-helpers@^2.0.0:
   version "2.2.12"
   resolved "https://repo.huaweicloud.com/repository/npm/vue-component-type-helpers/-/vue-component-type-helpers-2.2.12.tgz#5014787aad185a22f460ad469cc51f14524308bc"
   integrity sha512-YbGqHZ5/eW4SnkPNR44mKVc6ZKQoRs/Rux1sxC6rdwXb4qpbOSYfDr9DsTHolOTGmIKgM9j141mZbBeg05R1pw==
+
+vue-datepicker-next@1.0.2:
+  version "1.0.2"
+  resolved "https://repo.huaweicloud.com/repository/npm/vue-datepicker-next/-/vue-datepicker-next-1.0.2.tgz#47d49822547394f7edb24f18bb768043506f605d"
+  integrity sha512-gGXLT9x0oTFcMc1yCX1boVAflT8nifb+lsFQXLNdRptt2QK2gvFh1MvhqZx5L2x1YO7Ft28uuugXGhUcJxox+A==
+  dependencies:
+    date-format-parse "^0.2.7"
+    vue "^3.0.0"
 
 vue-observe-visibility@^2.0.0-alpha.1:
   version "2.0.0-alpha.1"
@@ -3968,7 +3998,7 @@ vue-virtual-scroller@^2.0.0-beta.8:
     vue-observe-visibility "^2.0.0-alpha.1"
     vue-resize "^2.0.0-alpha.1"
 
-vue@^3.4.38:
+vue@^3.0.0, vue@^3.4.38:
   version "3.5.18"
   resolved "https://repo.huaweicloud.com/repository/npm/vue/-/vue-3.5.18.tgz#3d622425ad1391a2b0138323211ec784f4415686"
   integrity sha512-7W4Y4ZbMiQ3SEo+m9lnoNpV9xG7QVMLa+/0RFwwiAVkeYoyGXqWE85jabU4pllJNUzqfLShJ5YLptewhCWUgNA==

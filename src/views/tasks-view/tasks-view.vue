@@ -18,6 +18,7 @@ type TaskItem = {
   priority: TaskPriority
   status: TaskStatus
   note: string | null
+  progress: number
   created_at: number
   updated_at: number | null
 }
@@ -122,6 +123,17 @@ async function updateTaskPriority(payload: { task: TaskItem; priority: TaskPrior
   }
 }
 
+async function onInlineProgress(payload: { task: TaskItem; progress: number }) {
+  try {
+    if (typeof window.api?.updateTask !== 'function') { toast.error('任务 API 未加载'); return }
+    const ok = await window.api.updateTask({ id: payload.task.id, progress: payload.progress })
+    if (!ok) throw new Error('update failed')
+    await fetchTasks()
+  } catch {
+    toast.error('更新进度失败')
+  }
+}
+
 onMounted(async () => {
   await Promise.all([fetchProjects(), fetchTasks()])
 })
@@ -153,6 +165,7 @@ watch([status, priority, projectId, due, includeDone], fetchTasks)
       :projects-map='projectsMap'
       @update-status='updateTaskStatus'
       @update-priority='updateTaskPriority'
+      @update-progress='onInlineProgress'
       @edit='openEdit'
       @delete='removeTask'
     />

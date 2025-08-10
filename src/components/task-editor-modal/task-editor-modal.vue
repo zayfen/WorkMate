@@ -104,6 +104,7 @@ async function handleSave() {
     due_date: parseDateTimeLocal(form.due_date),
     priority: form.priority,
     status: form.status,
+    progress: form.status === 'done' ? 100 : undefined,
     note: form.note.trim() || null
   }
   if (props.task) {
