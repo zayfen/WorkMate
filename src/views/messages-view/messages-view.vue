@@ -95,7 +95,9 @@ watch(() => peerId.value, async (next) => {
 async function fetchMessages({ room }: { room: { roomId: string }; options?: { reset?: boolean } }) {
   messagesLoaded.value = false
   const withDeviceId = room.roomId === 'broadcast' ? undefined : room.roomId
+  debugger
   const rows = (await window?.api?.lanListTodayMessages?.(withDeviceId)) ?? []
+  debugger
   const me = currentUserId.value
   const mapped: Message[] = rows.map(r => ({
     _id: String(r.id),
