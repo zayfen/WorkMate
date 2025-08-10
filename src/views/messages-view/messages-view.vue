@@ -92,12 +92,13 @@ watch(() => peerId.value, async (next) => {
   }
 })
 
-async function fetchMessages({ room }: { room: { roomId: string }; options?: { reset?: boolean } }) {
+async function fetchMessages(payload: { room: { roomId: string }; options?: { reset?: boolean } }) {
+
+  const { room } = payload
   messagesLoaded.value = false
   const withDeviceId = room.roomId === 'broadcast' ? undefined : room.roomId
-  debugger
+  console.log("loading messages: ", withDeviceId)
   const rows = (await window?.api?.lanListTodayMessages?.(withDeviceId)) ?? []
-  debugger
   const me = currentUserId.value
   const mapped: Message[] = rows.map(r => ({
     _id: String(r.id),
@@ -119,7 +120,9 @@ function findPeerName(deviceId: string): string | undefined {
   return undefined
 }
 
-async function sendMessage({ roomId, content }: { roomId: string; content: string }) {
+async function sendMessage(payload: { roomId: string; content: string }) {
+  console.log("sendMessage: ", payload)
+  const { roomId, content } = payload;
   const text = String(content || '').trim()
   if (!text) return
   const to = roomId === 'broadcast' ? undefined : roomId
@@ -146,8 +149,8 @@ async function sendMessage({ roomId, content }: { roomId: string; content: strin
       :show-reaction-emojis="false"
       :single-room="false"
       theme="light"
-      @fetch-messages="fetchMessages"
-      @send-message="sendMessage"
+      @fetch-messages="(evt: unknown) => fetchMessages(Array.isArray(evt.detail) ? evt.detail[0] : evt.detail)"
+      @send-message="(evt: unknown) => sendMessage(Array.isArray(evt.detail) ? evt.detail[0] : evt.detail)"
     />
   </div>
 </template>

@@ -2,7 +2,6 @@
   "name": "workmate",
   "private": true,
   "version": "0.1.0",
-  "type": "module",
   "description": "Electron + Vue3 + TypeScript + Vite + Router with Vitest scaffold",
   "main": "dist-electron/main/index.cjs",
   "scripts": {
@@ -12,7 +11,7 @@
     "build:electron": "vite build --config vite.electron.config.ts",
     "icons:generate": "node scripts/generate-icons.mjs",
     "preview": "vite preview",
-    "start": "electron dist-electron/main/index.cjs",
+    "start": "electron dist-electron/main/index.cjs --devtools",
     "rebuild:native": "electron-rebuild -f -w better-sqlite3",
     "rebuild:native:node": "npm rebuild better-sqlite3",
     "postinstall": "electron-builder install-app-deps",

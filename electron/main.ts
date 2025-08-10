@@ -15,6 +15,15 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 let mainWindow: BrowserWindow | null = null
 let lanService: UdpLanService | null = null
 
+function shouldOpenDevTools(): boolean {
+  try {
+    if (process.env.VITE_DEV_SERVER_URL) return true
+    if (String(process.env.ELECTRON_OPEN_DEVTOOLS || '') === '1') return true
+    if (Array.isArray(process.argv) && process.argv.includes('--devtools')) return true
+  } catch {}
+  return false
+}
+
 function resolveWindowIconPath(): string | undefined {
   try {
     const projectRoot = process.cwd()
@@ -37,11 +46,17 @@ const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {
   app.quit()
 }
-app.on('second-instance', () => {
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    mainWindow.focus()
-    mainWindow.show()
+app.on('second-instance', async () => {
+  try {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+      mainWindow.show()
+    } else {
+      await createWindow()
+    }
+  } catch {
+    try { await createWindow() } catch {}
   }
 })
 
@@ -61,14 +76,29 @@ const createWindow = async () => {
   const pageUrl = process.env.VITE_DEV_SERVER_URL
   if (pageUrl) {
     await mainWindow.loadURL(pageUrl)
-    mainWindow.webContents.openDevTools({ mode: 'detach' })
+    try {
+      if (shouldOpenDevTools() && !mainWindow.webContents.isDestroyed()) {
+        mainWindow.webContents.openDevTools({ mode: 'detach' })
+      }
+    } catch {}
   } else {
     await mainWindow.loadFile(join(__dirname, '../../dist/index.html'))
+    try {
+      if (shouldOpenDevTools() && !mainWindow.webContents.isDestroyed()) {
+        mainWindow.webContents.openDevTools({ mode: 'detach' })
+      }
+    } catch {}
   }
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
     return { action: 'deny' }
+  })
+
+  // 窗口关闭时清理引用，避免后续访问已销毁对象
+  mainWindow.on('closed', () => {
+    try { mainWindow?.removeAllListeners() } catch {}
+    mainWindow = null
   })
 }
 
@@ -286,7 +316,7 @@ ipcMain.handle('settings:get-device-id', async () => {
 })
 
 ipcMain.handle('user:choose-avatar', async () => {
-  if (!mainWindow) return null
+  if (!mainWindow || mainWindow.isDestroyed()) return null
   const res = await dialog.showOpenDialog(mainWindow, {
     title: '选择头像',
     properties: ['openFile'],
@@ -503,7 +533,7 @@ ipcMain.handle('tasks:delete', async (_event, payload: { id: number }) => {
 
 // Report export handlers
 ipcMain.handle('report:save-text', async (_event, payload: { content: string; defaultPath?: string; filters?: Array<{ name: string; extensions: string[] }> }) => {
-  if (!mainWindow) return false
+  if (!mainWindow || mainWindow.isDestroyed()) return false
   const res = await dialog.showSaveDialog(mainWindow, {
     title: '保存报告',
     defaultPath: payload?.defaultPath ?? 'report.txt',
@@ -522,7 +552,7 @@ ipcMain.handle('report:save-text', async (_event, payload: { content: string; de
 })
 
 ipcMain.handle('report:save-pdf', async (_event, payload: { html: string; defaultPath?: string }) => {
-  if (!mainWindow) return false
+  if (!mainWindow || mainWindow.isDestroyed()) return false
   const res = await dialog.showSaveDialog(mainWindow, {
     title: '导出 PDF',
     defaultPath: payload?.defaultPath ?? 'report.pdf',
