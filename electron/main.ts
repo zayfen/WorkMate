@@ -155,7 +155,18 @@ app.whenReady().then(async () => {
           text: msg.text,
           ts: msg.ts
         })
+      // If the message is directly sent to me, show a system notification
+      try {
+        const settings = new SettingsDao()
+        const myId = settings.ensureDeviceId()
+        if (msg.to && msg.to === myId) {
+          const title = '新私聊消息'
+          const body = msg.text.slice(0, 100)
+          new Notification({ title, body }).show()
+        }
+      } catch {}
       }
+      
     } catch (e) {
       console.error('lan:chat forward failed', e)
     }

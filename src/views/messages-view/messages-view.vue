@@ -137,6 +137,7 @@ async function fetchMessages(payload: { room: { roomId: string }; options?: { re
   }
   console.log("loading messages: ", withDeviceId)
   const rows = (await window?.api?.lanListTodayMessages?.(withDeviceId)) ?? []
+
   const me = currentUserId.value
   const mapped: Message[] = rows.map(r => ({
     _id: String(r.id),
