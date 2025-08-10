@@ -8,7 +8,6 @@ const ProjectsView = () => import('@/views/projects-view/projects-view.vue')
 const TasksView = () => import('@/views/tasks-view/tasks-view.vue')
 const ReportsView = () => import('@/views/reports-view/reports-view.vue')
 const MessagesView = () => import('@/views/messages-view/messages-view.vue')
-const UserProfileView = () => import('@/views/user-profile-view/user-profile-view.vue')
 const SettingsView = () => import('@/views/settings-view/settings-view.vue')
 
 const router = createRouter({
@@ -30,7 +29,7 @@ const router = createRouter({
         { path: 'tasks', name: 'tasks', component: TasksView, meta: { title: '任务' } },
         { path: 'reports', name: 'reports', component: ReportsView, meta: { title: '报告' } },
         { path: 'messages', name: 'messages', component: MessagesView, meta: { title: '消息' } },
-        { path: 'user', name: 'user', component: UserProfileView, meta: { title: '用户资料' } },
+        { path: 'user', redirect: '/app/settings' },
         { path: 'settings', name: 'settings', component: SettingsView, meta: { title: '设置' } }
       ]
     }

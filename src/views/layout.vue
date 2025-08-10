@@ -42,11 +42,14 @@ import LanMembersPanel from '@/components/lan-members-panel/lan-members-panel.vu
 .main {
   display: flex;
   flex-direction: column;
+  /* 允许内部滚动容器正确计算高度 */
+  min-height: 0;
 }
 .content {
   box-sizing: border-box;
-  height: 100vh;
+  height: 100%;
   padding: 24px;
+  overflow-y: auto;
 }
 </style>
 
