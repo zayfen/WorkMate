@@ -104,20 +104,6 @@ onMounted(() => {
       console.log("in this Root: ", shouldFetchMessages)
       console.log("currentRoomId: ", currentRoomId.value, " ;fromDeviceId: ", payload.from_device_id, " ;toDeviceId: ", payload.to_device_id)
       if (shouldFetchMessages) {
-        // 先本地乐观追加一条，提升即时反馈
-        const meId = currentUserId.value
-        const tempId = `temp-${payload.ts}-${payload.from_device_id}`
-        const item = {
-          _id: tempId,
-          content: payload.text,
-          senderId: payload.from_device_id,
-          username: payload.from_device_id === meId ? '我' : (rooms.value.find(rm => rm.roomId === payload.from_device_id)?.roomName || findPeerName(payload.from_device_id) || payload.from_device_id),
-          timestamp: new Date(payload.ts).toLocaleTimeString(),
-          saved: true,
-          distributed: true,
-          seen: true
-        } as Message
-        messages.value = [...messages.value, item]
         // 紧接着拉取一次，确保与数据库一致并去重
         await fetchMessages({ room: { roomId: currentRoomId.value }, options: { reset: true } })
       }
