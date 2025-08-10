@@ -146,7 +146,19 @@ app.whenReady().then(async () => {
     } catch (e) {
       console.error('Failed to store incoming chat', e)
     }
-    // Optionally, we could notify renderer via webContents event later
+    // Notify renderer about incoming chat for real-time update
+    try {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('lan:chat', {
+          from_device_id: msg.from,
+          to_device_id: msg.to ?? null,
+          text: msg.text,
+          ts: msg.ts
+        })
+      }
+    } catch (e) {
+      console.error('lan:chat forward failed', e)
+    }
   })
   // listen task-complete broadcast → system notification + sound (testable wrapper)
   setupLanTaskCompleteNotifications(
@@ -201,7 +213,21 @@ ipcMain.handle('lan:send-chat', async (_event, payload: { to?: string; text: str
     const settings = new SettingsDao()
     const from = settings.ensureDeviceId()
     const messagesDao = new MessagesDao()
-    messagesDao.create({ from_device_id: from, to_device_id: payload?.to ?? null, text })
+    const ts = Date.now()
+    messagesDao.create({ from_device_id: from, to_device_id: payload?.to ?? null, text, ts })
+    // notify renderer immediately for local echo
+    try {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('lan:chat', {
+          from_device_id: from,
+          to_device_id: payload?.to ?? null,
+          text,
+          ts
+        })
+      }
+    } catch (e) {
+      console.error('lan:chat local echo failed', e)
+    }
     return true
   } catch (e) {
     console.error('lan:send-chat error', e)

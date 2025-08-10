@@ -141,7 +141,15 @@ contextBridge.exposeInMainWorld('api', {
     lastMessageText: string
     lastMessageTs: number
     lastSeen: number
-  }>>
+  }>>,
+  // subscribe to incoming chat events
+  onLanChat: (handler: (payload: { from_device_id: string; to_device_id: string | null; text: string; ts: number }) => void) => {
+    const listener = (_e: any, payload: { from_device_id: string; to_device_id: string | null; text: string; ts: number }) => {
+      try { handler(payload) } catch {}
+    }
+    ipcRenderer.on('lan:chat', listener)
+    return () => ipcRenderer.removeListener('lan:chat', listener)
+  }
 })
 
 

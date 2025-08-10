@@ -136,6 +136,7 @@ declare global {
         lastMessageTs: number
         lastSeen: number
       }>>
+      onLanChat?: (handler: (payload: { from_device_id: string; to_device_id: string | null; text: string; ts: number }) => void) => () => void
     }
   }
 }

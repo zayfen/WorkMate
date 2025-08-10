@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { register } from 'vue-advanced-chat'
 
@@ -92,6 +92,38 @@ onMounted(async () => {
   // 定时刷新在线用户与会话，避免左侧列表卡在 loading
   setInterval(loadRooms, 5000)
 })
+
+// subscribe realtime incoming chat and refresh current room messages
+let offChat: (() => void) | null = null
+onMounted(() => {
+  try {
+    offChat = window?.api?.onLanChat?.(async (payload) => {
+      const activeRoomId = peerId.value || 'broadcast'
+      const isToBroadcast = payload.to_device_id === null
+      const isInThisRoom = isToBroadcast ? activeRoomId === 'broadcast' : (payload.from_device_id === activeRoomId || payload.to_device_id === activeRoomId)
+      if (isInThisRoom) {
+        // 先本地乐观追加一条，提升即时反馈
+        const meId = currentUserId.value
+        const tempId = `temp-${payload.ts}-${payload.from_device_id}`
+        const item = {
+          _id: tempId,
+          content: payload.text,
+          senderId: payload.from_device_id,
+          username: payload.from_device_id === meId ? '我' : (rooms.value.find(rm => rm.roomId === payload.from_device_id)?.roomName || findPeerName(payload.from_device_id) || payload.from_device_id),
+          timestamp: new Date(payload.ts).toLocaleTimeString(),
+          saved: true,
+          distributed: true,
+          seen: true
+        } as Message
+        messages.value = [...messages.value, item]
+        // 紧接着拉取一次，确保与数据库一致并去重
+        await fetchMessages({ room: { roomId: activeRoomId }, options: { reset: true } })
+      }
+    }) || null
+  } catch {}
+})
+
+onBeforeUnmount(() => { try { offChat?.() } catch {} })
 
 watch(() => peerId.value, async (next) => {
   if (!next) {
