@@ -162,7 +162,7 @@ async function sendMessage(payload: { roomId: string; content: string }) {
   <div class="messages-chat">
     <vue-advanced-chat
       v-if="roomsLoaded"
-      :height="'calc(100vh - 140px)'"
+      :height="'calc(100vh - 48px)'"
       :current-user-id="currentUserId"
       :rooms="rooms"
       :rooms-loaded="roomsLoaded"
