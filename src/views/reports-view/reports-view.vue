@@ -8,6 +8,7 @@ import { generateReport } from '@/utils/report-generator'
 import { toMarkdown, toHtml, toPdfReadyHtml } from '@/utils/report-formatter'
 
 const data = ref<ReportData | null>(null)
+const previewRef = ref<InstanceType<typeof ReportPreview> | null>(null)
 const projectsMap = ref<Record<number, string>>({})
 const autoTitle = computed(() => {
   const d = data.value
@@ -29,7 +30,8 @@ async function handleGenerate(payload: { granularity: ReportQuery['granularity']
 
 async function exportHtml() {
   if (!data.value) return
-  const html = toHtml(data.value)
+  // 优先使用组件提供的 HTML（含图表截图与样式），回退到原 Markdown->HTML
+  const html = previewRef.value?.getExportHtml?.() ?? toHtml(data.value)
   await window.api?.saveReportText?.(html, 'report.html', [{ name: 'HTML', extensions: ['html'] }])
 }
 async function exportMd() {
@@ -39,7 +41,7 @@ async function exportMd() {
 }
 async function exportPdf() {
   if (!data.value) return
-  const html = toPdfReadyHtml(data.value)
+  const html = previewRef.value?.getExportHtml?.() ?? toPdfReadyHtml(data.value)
   await window.api?.saveReportPdf?.(html, 'report.pdf')
 }
 
@@ -54,7 +56,7 @@ onMounted(async () => {
 <template>
   <div class="reports">
     <ReportGenerator @generate="handleGenerate" />
-    <ReportPreview :data="data" :projectsMap="projectsMap">
+    <ReportPreview ref="previewRef" :data="data" :projectsMap="projectsMap">
       <template #title-right>
         <div class="actions">
           <ExportButtons @export-html="exportHtml" @export-md="exportMd" @export-pdf="exportPdf" />

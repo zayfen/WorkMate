@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { ReportData, RendererTask } from '@/utils/report-types'
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title as ChartTitle, Tooltip, Legend } from 'chart.js'
@@ -65,6 +65,72 @@ const chartOptions = {
 
 const completionRateLabel = computed(() => `${(summary.value.completionRate * 100).toFixed(0)}%`)
 
+const chartRef = ref<InstanceType<typeof Bar> | null>(null)
+
+function buildExportHtml(): string {
+  const img = (chartRef.value as any)?.chart?.toBase64Image?.() || ''
+  const safe = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const titleText = (title.value || '').toString()
+  const s = summary.value
+  const projects = byProject.value
+  const htmlParts: string[] = []
+  htmlParts.push(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${safe(titleText)}</title>`)
+  htmlParts.push(`<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial;margin:0;padding:24px;color:#111827;background:#ffffff}
+  .preview{border:1px solid #e5e7eb;border-radius:12px;padding:12px;display:grid;gap:12px}
+  .head{display:flex;align-items:center;justify-content:space-between}
+  .title{font-size:20px;font-weight:700}
+  .chart-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px}
+  .chart-head{display:flex;align-items:center;justify-content:space-between}
+  .chart-title{font-size:14px;font-weight:600;color:#374151}
+  .chart-meta{font-size:13px;color:#374151;font-weight:500}
+  .paper{border:1px solid #e5e7eb;border-radius:12px;padding:16px;display:grid;gap:12px}
+  .sec{display:grid;gap:6px}
+  .sec-title{font-weight:600;color:#374151}
+  .projects{display:grid;gap:12px}
+  .project{border:1px solid #e5e7eb;border-radius:12px;padding:12px}
+  .p-head{font-weight:600;margin-bottom:8px;font-size:14px}
+  .table{display:grid;gap:6px}
+  .t-row{display:grid;grid-template-columns:3fr 1fr 1fr 1fr 1.5fr;align-items:center;gap:8px}
+  .t-row.t-head{color:#6b7280;font-size:12px}
+  .t-row:not(.t-head){font-size:13px;color:#111827}
+  .c-title{line-height:1.3}
+  .c-progress{display:flex;align-items:center;gap:6px}
+  .progress{position:relative;height:6px;background:#eef2f7;border-radius:999px;width:100%}
+  .progress .bar{position:absolute;left:0;top:0;bottom:0;background:#3b82f6;border-radius:999px}
+  .chip{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;background:#f3f4f6}
+  .chip.done{background:#dcfce7;color:#166534}
+  .chip.in_progress{background:#dbeafe;color:#1e3a8a}
+  .chip.todo{background:#fef3c7;color:#92400e}
+  .chip.high{background:#fee2e2;color:#991b1b}
+  .chip.medium{background:#e5e7eb;color:#374151}
+  .chip.low{background:#e0f2fe;color:#075985}
+  </style></head><body>`)
+  htmlParts.push(`<div class="preview">`)
+  htmlParts.push(`<div class="head"><h2 class="title">${safe(titleText)}</h2></div>`)
+  htmlParts.push(`<div class="chart-card"><div class="chart-head"><div class="chart-title">完成情况</div><div class="chart-meta">完成率 ${(s.completionRate*100).toFixed(0)}%</div></div>`)
+  if (img) htmlParts.push(`<img alt="chart" style="width:100%;height:auto;border-radius:8px;margin-top:8px" src="${img}"/>`)
+  htmlParts.push(`</div>`)
+  htmlParts.push(`<div class="paper"><div class="sec"><div class="sec-title">项目明细</div><div class="projects">`)
+  for (const p of projects) {
+    htmlParts.push(`<div class="project"><div class="p-head">${safe(p.projectName)}</div><div class="table">`)
+    htmlParts.push(`<div class="t-row t-head"><div class="c-title">标题</div><div class="c-status">状态</div><div class="c-priority">优先级</div><div class="c-due">截止日期</div><div class="c-progress">进度</div></div>`)
+    for (const t of p.tasks) {
+      const pr = Math.max(0, Math.min(100, (t as any).progress ?? 0))
+      const statusText = t.status === 'done' ? '已完成' : (t.status === 'in_progress' ? '进行中' : '未开始')
+      const prioText = t.priority === 'high' ? '高' : (t.priority === 'low' ? '低' : '中')
+      const due = formatDate(t.due_date)
+      htmlParts.push(`<div class="t-row"><div class="c-title">${safe(t.title)}</div><div class="c-status"><span class="chip ${t.status}">${statusText}</span></div><div class="c-priority"><span class="chip ${t.priority}">${prioText}</span></div><div class="c-due">${safe(due)}</div><div class="c-progress"><div class="progress"><div class="bar" style="width:${pr}%"></div></div><div class="pct">${pr}%</div></div></div>`)
+    }
+    htmlParts.push(`</div></div>`)
+  }
+  htmlParts.push(`</div></div></div>`)
+  htmlParts.push(`</body></html>`)
+  return htmlParts.join('')
+}
+
+defineExpose({ getExportHtml: buildExportHtml })
+
 function formatDate(ts?: number | null): string {
   if (!ts) return '-'
   const d = new Date(ts)
@@ -87,7 +153,7 @@ function formatDate(ts?: number | null): string {
         <div class="chart-title">完成情况</div>
         <div class="chart-meta">完成率 {{ completionRateLabel }}</div>
       </div>
-      <Bar :data="chartData" :options="chartOptions" />
+      <Bar ref="chartRef" :data="chartData" :options="chartOptions" />
     </div>
     <div class="paper">
       <div class="sec">

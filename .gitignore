@@ -11,3 +11,7 @@ pnpm-debug.log*
 coverage/
 
 
+report.html
+report.md
+report.pdf
+report.html

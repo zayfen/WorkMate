@@ -2,38 +2,48 @@ import type { ReportData, RendererTask } from './report-types'
 
 export function toMarkdown(data: ReportData): string {
   const lines: string[] = []
-  lines.push(`# 周报 | ${data.query.title ?? data.query.granularity} (${fmtDate(new Date(data.query.from))} — ${fmtDate(new Date(data.query.to))})`)
+  const title = data.query.title ?? data.query.granularity
+  lines.push(`# ${title}`)
   lines.push('')
-  lines.push(`生成时间：${fmtDateTime(new Date(data.generatedAt))}`)
+  lines.push(`- 时间范围: ${fmtDate(new Date(data.query.from))} — ${fmtDate(new Date(data.query.to))}`)
+  lines.push(`- 生成时间: ${fmtDateTime(new Date(data.generatedAt))}`)
   lines.push('')
-  lines.push(`- 任务总数：${data.summary.total}`)
-  lines.push(`- 已完成：${data.summary.done}`)
-  lines.push(`- 进行中：${data.summary.in_progress}`)
-  lines.push(`- 待处理：${data.summary.todo}`)
-  lines.push(`- 完成率：${(data.summary.completionRate * 100).toFixed(1)}%`)
-  lines.push(`- 逾期：${data.summary.overdue}`)
+  lines.push('## 概览')
   lines.push('')
-  lines.push('## 亮点 Highlights')
+  lines.push('| 指标 | 数值 |')
+  lines.push('| --- | ---: |')
+  lines.push(`| 任务总数 | ${data.summary.total} |`)
+  lines.push(`| 已完成 | ${data.summary.done} |`)
+  lines.push(`| 进行中 | ${data.summary.in_progress} |`)
+  lines.push(`| 未开始 | ${data.summary.todo} |`)
+  lines.push(`| 完成率 | ${(data.summary.completionRate * 100).toFixed(1)}% |`)
+  lines.push(`| 逾期 | ${data.summary.overdue} |`)
+  lines.push('')
+  lines.push('## 项目明细')
+  lines.push('')
+  lines.push('| 项目 | 标题 | 状态 | 优先级 | 截止 | 进度 |')
+  lines.push('| --- | --- | --- | --- | --- | ---: |')
+  for (const bucket of data.buckets) {
+    for (const t of bucket.tasks) {
+      const statusText = t.status === 'done' ? '已完成' : (t.status === 'in_progress' ? '进行中' : '未开始')
+      const prioText = t.priority === 'high' ? '高' : (t.priority === 'low' ? '低' : '中')
+      const due = t.due_date ? fmtDate(new Date(t.due_date)) : '-'
+      const progress = (t as any).progress ?? 0
+      lines.push(`| P${t.project_id} | ${escapeMd(t.title)} | ${statusText} | ${prioText} | ${due} | ${progress}% |`)
+    }
+  }
+  lines.push('')
+  lines.push('## 亮点')
   lines.push(renderTaskList(data.sections.highlights))
   lines.push('')
-  lines.push('## 进行中 In Progress')
-  lines.push(renderTaskList(data.sections.inProgress))
-  lines.push('')
-  lines.push('## 计划 Planned')
-  lines.push(renderTaskList(data.sections.planned))
-  lines.push('')
-  lines.push('## 风险与阻塞 Risks')
+  lines.push('## 风险与阻塞')
   lines.push(renderTaskList(data.sections.risks))
   lines.push('')
-  lines.push('## 逾期 Overdue')
-  lines.push(renderTaskList(data.sections.overdue))
+  lines.push('## 计划')
+  lines.push(renderTaskList(data.sections.planned))
   lines.push('')
-  lines.push('## 分桶数据 Buckets')
-  for (const b of data.buckets) {
-    lines.push(`### ${b.label}`)
-    lines.push(renderTaskList(b.tasks))
-    lines.push('')
-  }
+  lines.push('## 进行中')
+  lines.push(renderTaskList(data.sections.inProgress))
   return lines.join('\n')
 }
 
