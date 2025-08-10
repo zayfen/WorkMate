@@ -1,6 +1,6 @@
 import dgram from 'node:dgram'
 import os from 'node:os'
-import { PresenceRegistry, tryParsePacket, HeartbeatMessage, ChatMessage } from './presence'
+import { PresenceRegistry, tryParsePacket, HeartbeatMessage, ChatMessage, TaskCompleteMessage } from './presence'
 
 export type UdpLanOptions = {
   multicastAddress?: string
@@ -17,6 +17,7 @@ export class UdpLanService {
   private readonly deviceId: string
   private readonly name: string
   private onChatHandlers: Array<(msg: ChatMessage) => void> = []
+  private onTaskCompleteHandlers: Array<(msg: TaskCompleteMessage) => void> = []
 
   constructor(params: { deviceId: string; name: string; options?: UdpLanOptions }) {
     const defaults: Required<UdpLanOptions> = {
@@ -51,6 +52,9 @@ export class UdpLanService {
           // if message is direct to someone else, ignore
           if (packet.to && packet.to !== this.deviceId) return
           this.onChatHandlers.forEach((h) => h(packet))
+        } else if (packet.type === 'task-complete') {
+          if (packet.from === this.deviceId) return
+          this.onTaskCompleteHandlers.forEach((h) => h(packet))
         }
       })
       this.socket.bind(this.options.port, () => {})
@@ -84,6 +88,26 @@ export class UdpLanService {
 
   sendChat(text: string, toDeviceId?: string): void {
     const packet: ChatMessage = { type: 'chat', from: this.deviceId, to: toDeviceId, text, ts: Date.now() }
+    const buf = Buffer.from(JSON.stringify(packet))
+    this.socket.send(buf, 0, buf.length, this.options.port, this.options.multicastAddress)
+  }
+
+  onTaskComplete(handler: (msg: TaskCompleteMessage) => void): () => void {
+    this.onTaskCompleteHandlers.push(handler)
+    return () => {
+      this.onTaskCompleteHandlers = this.onTaskCompleteHandlers.filter((h) => h !== handler)
+    }
+  }
+
+  sendTaskComplete(payload: { taskId: number; taskTitle: string }): void {
+    const packet: TaskCompleteMessage = {
+      type: 'task-complete',
+      from: this.deviceId,
+      fromName: this.name,
+      taskId: Number(payload.taskId),
+      taskTitle: String(payload.taskTitle || '').slice(0, 200),
+      ts: Date.now()
+    }
     const buf = Buffer.from(JSON.stringify(packet))
     this.socket.send(buf, 0, buf.length, this.options.port, this.options.multicastAddress)
   }

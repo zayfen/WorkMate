@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, dialog, Notification } from 'electron'
+import { setupLanTaskCompleteNotifications, maybeBroadcastTaskComplete } from './services/lan/task-complete'
 import { join, dirname } from 'node:path'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { DatabaseManager } from './models/db'
@@ -86,6 +87,12 @@ app.whenReady().then(async () => {
     }
     // Optionally, we could notify renderer via webContents event later
   })
+  // listen task-complete broadcast → system notification + sound (testable wrapper)
+  setupLanTaskCompleteNotifications(
+    lanService,
+    (title, body) => new Notification({ title, body }).show(),
+    () => { try { shell.beep() } catch {} }
+  )
 })
 
 ipcMain.handle('ping', () => 'pong')
@@ -399,6 +406,7 @@ ipcMain.handle('tasks:update', async (_event, payload: {
   const id = Number(payload?.id)
   if (!id) return false
   const tasksDao = new TasksDao()
+  const before = tasksDao.getById(id)
   const fields: any = {
     project_id: typeof payload?.project_id === 'number' ? payload?.project_id : undefined,
     title: typeof payload?.title === 'string' ? payload?.title : undefined,
@@ -416,7 +424,7 @@ ipcMain.handle('tasks:update', async (_event, payload: {
   }
   // prohibit jumping from todo -> done directly
   if (payload?.status === 'done') {
-    const current = tasksDao.getById(id)
+    const current = before
     if (current && current.status === 'todo') {
       return false
     }
@@ -425,7 +433,16 @@ ipcMain.handle('tasks:update', async (_event, payload: {
   if (payload?.status === 'in_progress' && fields.start_time === undefined) {
     fields.start_time = Date.now()
   }
-  return tasksDao.update(id, fields)
+  const ok = tasksDao.update(id, fields)
+  try {
+    if (ok) {
+      const after = tasksDao.getById(id)
+      maybeBroadcastTaskComplete(lanService, before ? { id: before.id, title: before.title, status: before.status } : null, after ? { id: after.id, title: after.title, status: after.status } : null)
+    }
+  } catch (e) {
+    console.error('tasks:update broadcast task-complete failed', e)
+  }
+  return ok
 })
 
 ipcMain.handle('tasks:delete', async (_event, payload: { id: number }) => {

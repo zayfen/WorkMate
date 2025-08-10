@@ -74,7 +74,16 @@ export type ChatMessage = {
   ts: number
 }
 
-export type LanPacket = HeartbeatMessage | ChatMessage
+export type TaskCompleteMessage = {
+  type: 'task-complete'
+  from: string
+  fromName: string
+  taskId: number
+  taskTitle: string
+  ts: number
+}
+
+export type LanPacket = HeartbeatMessage | ChatMessage | TaskCompleteMessage
 
 export function tryParsePacket(input: Buffer | string): LanPacket | null {
   try {
@@ -86,6 +95,16 @@ export function tryParsePacket(input: Buffer | string): LanPacket | null {
     }
     if (obj.type === 'chat' && typeof obj.from === 'string' && typeof obj.text === 'string' && typeof obj.ts === 'number') {
       return obj as ChatMessage
+    }
+    if (
+      obj.type === 'task-complete' &&
+      typeof obj.from === 'string' &&
+      typeof obj.fromName === 'string' &&
+      typeof obj.taskId === 'number' &&
+      typeof obj.taskTitle === 'string' &&
+      typeof obj.ts === 'number'
+    ) {
+      return obj as TaskCompleteMessage
     }
     return null
   } catch {
