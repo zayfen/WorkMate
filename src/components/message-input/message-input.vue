@@ -1,12 +1,19 @@
 <script setup lang='ts'>
 import { ref } from 'vue'
 const text = ref('')
+
+async function send() {
+  const t = text.value.trim()
+  if (!t) return
+  await window?.api?.lanSendChat?.({ text: t })
+  text.value = ''
+}
 </script>
 
 <template>
   <div class='bar'>
-    <input v-model="text" placeholder='输入消息' />
-    <button class='send'>发送</button>
+    <input v-model="text" @keyup.enter="send" placeholder='输入消息' />
+    <button class='send' @click="send">发送</button>
   </div>
 </template>
 

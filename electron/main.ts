@@ -2,14 +2,17 @@ import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import { join, dirname } from 'node:path'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { DatabaseManager } from './models/db'
-import { UsersDao } from './models/users'
 import { SettingsDao } from './models/settings'
+import { UsersDao } from './models/users'
+import { UdpLanService } from './services/lan/udp-service'
+import { MessagesDao } from './models/messages'
 import { ProjectsDao } from './models/projects'
 import { TasksDao, TaskPriority, TaskStatus, TaskListDue } from './models/tasks'
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
 let mainWindow: BrowserWindow | null = null
+let lanService: UdpLanService | null = null
 
 // Ensure single instance
 const gotLock = app.requestSingleInstanceLock()
@@ -65,9 +68,77 @@ app.whenReady().then(async () => {
   DatabaseManager.initialize(dbPath)
 
   await createWindow()
+
+  // Start LAN service after DB and window are ready
+  const settings = new SettingsDao()
+  const deviceId = settings.ensureDeviceId()
+  const users = new UsersDao()
+  const me = users.getUserByLocalId('local_user') || { name: '未命名用户' }
+  lanService = new UdpLanService({ deviceId, name: me.name || '未命名用户' })
+  await lanService.start()
+  const messagesDao = new MessagesDao()
+  // listen chat and persist (today only is guaranteed by DAO purge API if needed)
+  lanService.onChat((msg) => {
+    try {
+      messagesDao.create({ from_device_id: msg.from, to_device_id: msg.to ?? null, text: msg.text, ts: msg.ts })
+    } catch (e) {
+      console.error('Failed to store incoming chat', e)
+    }
+    // Optionally, we could notify renderer via webContents event later
+  })
 })
 
 ipcMain.handle('ping', () => 'pong')
+
+// LAN presence handlers
+ipcMain.handle('lan:list-online', async () => {
+  try {
+    if (!lanService) return []
+    return lanService.getOnlinePeers().map((p) => ({
+      deviceId: p.deviceId,
+      name: p.name,
+      lastSeen: p.lastSeen
+    }))
+  } catch (e) {
+    console.error('lan:list-online error', e)
+    return []
+  }
+})
+
+ipcMain.handle('lan:send-chat', async (_event, payload: { to?: string; text: string }) => {
+  try {
+    const text = String(payload?.text || '').slice(0, 2000)
+    if (!text) return false
+    if (!lanService) return false
+    lanService.sendChat(text, payload?.to)
+    // store my outgoing as well
+    const settings = new SettingsDao()
+    const from = settings.ensureDeviceId()
+    const messagesDao = new MessagesDao()
+    messagesDao.create({ from_device_id: from, to_device_id: payload?.to ?? null, text })
+    return true
+  } catch (e) {
+    console.error('lan:send-chat error', e)
+    return false
+  }
+})
+
+ipcMain.handle('lan:list-today-messages', async (_event, payload?: { withDeviceId?: string }) => {
+  try {
+    const messagesDao = new MessagesDao()
+    // ensure only today messages are kept
+    try { messagesDao.purgeNotToday() } catch {}
+    if (payload?.withDeviceId) {
+      const settings = new SettingsDao()
+      const me = settings.ensureDeviceId()
+      return messagesDao.listTodayWithPeer(me, payload.withDeviceId)
+    }
+    return messagesDao.listToday()
+  } catch (e) {
+    console.error('lan:list-today-messages error', e)
+    return []
+  }
+})
 
 // User profile handlers
 ipcMain.handle('user:get-profile', async () => {

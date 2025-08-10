@@ -115,6 +115,17 @@ declare global {
       // Reports export
       saveReportText?: (content: string, defaultPath?: string, filters?: Array<{ name: string; extensions: string[] }>) => Promise<boolean>
       saveReportPdf?: (html: string, defaultPath?: string) => Promise<boolean>
+      // LAN presence & messaging
+      lanListOnline?: () => Promise<Array<{ deviceId: string; name: string; lastSeen: number }>>
+      lanSendChat?: (payload: { to?: string; text: string }) => Promise<boolean>
+      lanListTodayMessages?: (withDeviceId?: string) => Promise<Array<{
+        id: number
+        from_device_id: string
+        to_device_id: string | null
+        text: string
+        ts: number
+        day_key: string
+      }>>
     }
   }
 }

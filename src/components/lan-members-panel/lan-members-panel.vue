@@ -1,31 +1,53 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onBeforeUnmount, ref } from 'vue'
 
-type Member = { id: number, name: string, status: '在线' | '空闲' | '离线' }
+type OnlinePeer = { deviceId: string; name: string; lastSeen: number }
 
-const members = ref<Member[]>([
-  { id: 1, name: '张伟', status: '在线' },
-  { id: 2, name: '李娜', status: '空闲' },
-  { id: 3, name: '王强', status: '离线' }
-])
+const members = ref<OnlinePeer[]>([])
+let timer: number | null = null
 
-const statusColor = (status: Member['status']) =>
-  status === '在线' ? '#34C759' : status === '空闲' ? '#8E8E93' : '#C7C7CC'
+async function refresh() {
+  const [list, myId] = await Promise.all([
+    window?.api?.lanListOnline?.(),
+    window?.api?.getDeviceId?.()
+  ])
+  members.value = (list ?? []).filter(p => p.deviceId !== (myId ?? ''))
+}
+
+function sendMessage(to: string) {
+  const text = prompt('输入要发送的消息：') || ''
+  if (!text) return
+  window?.api?.lanSendChat?.({ to, text })
+}
+
+onMounted(() => {
+  refresh()
+  timer = window.setInterval(refresh, 3000)
+})
+
+onBeforeUnmount(() => {
+  if (timer) window.clearInterval(timer)
+  timer = null
+})
+
+function statusColor() {
+  return '#34C759'
+}
 </script>
 
 <template>
   <div class="panel">
     <ul class="member-list">
-      <li v-for="m in members" :key="m.id" class="member">
+      <li v-for="m in members" :key="m.deviceId" class="member">
         <div class="avatar">{{ m.name.slice(0,1) }}</div>
         <div class="info">
           <div class="name">{{ m.name }}</div>
           <div class="status">
-            <span class="dot" :style="{ background: statusColor(m.status) }" />
-            {{ m.status }}
+            <span class="dot" :style="{ background: statusColor() }" />
+            在线
           </div>
         </div>
-        <button class="msg-btn">发送消息</button>
+        <button class="msg-btn" @click="sendMessage(m.deviceId)">发送消息</button>
       </li>
     </ul>
   </div>

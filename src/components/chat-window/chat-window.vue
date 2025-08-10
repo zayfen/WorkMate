@@ -1,10 +1,18 @@
 <script setup lang='ts'>
-import { ref } from 'vue'
-type Msg = { id: number, me?: boolean, text: string }
-const messages = ref<Msg[]>([
-  { id: 1, text: '你好' },
-  { id: 2, me: true, text: '在的' }
-])
+import { onMounted, ref, watch } from 'vue'
+
+type Msg = { id: number; me?: boolean; text: string; ts: number }
+const messages = ref<Msg[]>([])
+const activePeer = ref<string | null>(null)
+
+async function load() {
+  const rows = (await window?.api?.lanListTodayMessages?.(activePeer.value ?? undefined)) ?? []
+  const myId = await window?.api?.getDeviceId?.()
+  messages.value = rows.map(r => ({ id: r.id, text: r.text, ts: r.ts, me: r.from_device_id === myId }))
+}
+
+onMounted(load)
+watch(activePeer, load)
 </script>
 
 <template>

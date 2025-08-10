@@ -30,7 +30,13 @@ if (!('api' in window)) {
       ,
       listTasks: async () => [],
       saveReportText: async () => true,
-      saveReportPdf: async () => true
+      saveReportPdf: async () => true,
+      // LAN stubs to satisfy components during unit tests
+      lanListOnline: async () => [
+        { deviceId: 'peer-1', name: 'Peer 1', lastSeen: Date.now() }
+      ],
+      lanSendChat: async () => true,
+      lanListTodayMessages: async () => []
     },
     configurable: true
   })

@@ -119,7 +119,19 @@ contextBridge.exposeInMainWorld('api', {
   saveReportText: (content: string, defaultPath?: string, filters?: Array<{ name: string; extensions: string[] }>) =>
     ipcRenderer.invoke('report:save-text', { content, defaultPath, filters }) as Promise<boolean>,
   saveReportPdf: (html: string, defaultPath?: string) =>
-    ipcRenderer.invoke('report:save-pdf', { html, defaultPath }) as Promise<boolean>
+    ipcRenderer.invoke('report:save-pdf', { html, defaultPath }) as Promise<boolean>,
+  // LAN presence & messaging
+  lanListOnline: () => ipcRenderer.invoke('lan:list-online') as Promise<Array<{ deviceId: string; name: string; lastSeen: number }>>,
+  lanSendChat: (payload: { to?: string; text: string }) => ipcRenderer.invoke('lan:send-chat', payload) as Promise<boolean>,
+  lanListTodayMessages: (withDeviceId?: string) =>
+    ipcRenderer.invoke('lan:list-today-messages', withDeviceId ? { withDeviceId } : {}) as Promise<Array<{
+      id: number
+      from_device_id: string
+      to_device_id: string | null
+      text: string
+      ts: number
+      day_key: string
+    }>>
 })
 
 
