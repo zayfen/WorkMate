@@ -1,6 +1,8 @@
 <script setup lang='ts'>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useToast } from 'vue-toastification'
+import DatePicker from 'vue-datepicker-next'
+import 'vue-datepicker-next/index.css'
 
 type ProjectCounts = { total: number, done: number, in_progress: number, todo: number }
 type ProjectItem = {
@@ -48,19 +50,23 @@ function calcPercent(item: ProjectItem): number {
   return Math.max(0, Math.min(100, percent))
 }
 
-function renderDescription(html: string): string {
-  return sanitizeRichText(html)
+function descriptionHtml(item: ProjectItem): string {
+  const raw = (item.description ?? '').trim()
+  if (!raw) return ''
+  const sanitized = sanitizeRichText(raw)
+  if (sanitized) return sanitized
+  // 回退：将纯文本换行转换为 <br>，并进行转义
+  return escapeHtml(raw).replace(/\n/g, '<br>')
 }
 
 function sanitizeRichText(html: string): string {
   try {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(html, 'text/html')
+    const tpl = document.createElement('template')
+    tpl.innerHTML = html
     const allowedTags = new Set(['b','strong','i','em','u','a','p','ul','ol','li','br','span','div','code','pre','blockquote','h1','h2','h3','h4','h5','h6'])
     const allowedAttrs = new Set(['href','title'])
 
     const walk = (node: Node) => {
-      // Remove script/style nodes entirely
       if (node.nodeType === Node.ELEMENT_NODE) {
         const el = node as Element
         const tag = el.tagName.toLowerCase()
@@ -69,15 +75,13 @@ function sanitizeRichText(html: string): string {
           return
         }
         if (!allowedTags.has(tag)) {
-          // unwrap unknown tag but keep its children
           const parent = el.parentNode
           if (parent) {
             while (el.firstChild) parent.insertBefore(el.firstChild, el)
-            el.remove()
+            parent.removeChild(el)
             return
           }
         } else {
-          // scrub attributes
           for (const attr of Array.from(el.attributes)) {
             const name = attr.name.toLowerCase()
             if (!allowedAttrs.has(name)) {
@@ -87,7 +91,7 @@ function sanitizeRichText(html: string): string {
             if (name === 'href') {
               const value = (attr.value || '').trim()
               const lowered = value.toLowerCase()
-              if (lowered.startsWith('javascript:')) {
+              if (lowered.startsWith('javascript:') || lowered.startsWith('data:')) {
                 el.removeAttribute('href')
               }
             }
@@ -96,11 +100,18 @@ function sanitizeRichText(html: string): string {
       }
       for (const child of Array.from(node.childNodes)) walk(child)
     }
-    walk(doc.body)
-    return doc.body.innerHTML.trim()
+    walk(tpl.content)
+    return tpl.innerHTML.trim()
   } catch {
     return ''
   }
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 async function fetchProjects() {
@@ -227,7 +238,7 @@ onMounted(fetchProjects)
               <div class="truncate text-base font-semibold" :title="p.title">{{ p.title }}</div>
               <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-700">{{ calcPercent(p) }}% 完成</span>
             </div>
-            <div v-if="p.description" class="mt-1 break-words text-xs text-gray-600" v-html="renderDescription(p.description)"></div>
+            <div v-if="descriptionHtml(p)" class="rich-text mt-1 break-words text-xs text-gray-600" v-html="descriptionHtml(p)"></div>
           </div>
           <span v-if="p.archived" class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">已归档</span>
         </div>
@@ -275,7 +286,13 @@ onMounted(fetchProjects)
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs text-gray-600">预计结束日期</label>
-              <input v-model="form.estimated_end_date" type="date" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none" />
+              <DatePicker
+                v-model:value="form.estimated_end_date"
+                type="date"
+                value-type="YYYY-MM-DD"
+                placeholder="选择日期"
+                :editable="false"
+              />
             </div>
             <div>
               <label class="block text-xs text-gray-600">参与人（用逗号分隔）</label>
