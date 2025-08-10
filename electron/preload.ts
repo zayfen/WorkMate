@@ -114,6 +114,9 @@ contextBridge.exposeInMainWorld('api', {
       device_info: string | null
     } | null>,
   getDeviceId: () => ipcRenderer.invoke('settings:get-device-id') as Promise<string>,
+  // Generic settings helpers for sticky-note
+  getSetting: (key: string) => ipcRenderer.invoke('settings:get', { key }) as Promise<string | null>,
+  setSetting: (key: string, value: string) => ipcRenderer.invoke('settings:set', { key, value }) as Promise<boolean>,
   chooseAvatar: () => ipcRenderer.invoke('user:choose-avatar') as Promise<string | null>,
   // Reports export
   saveReportText: (content: string, defaultPath?: string, filters?: Array<{ name: string; extensions: string[] }>) =>

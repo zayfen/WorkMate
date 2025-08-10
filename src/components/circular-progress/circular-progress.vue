@@ -1,17 +1,28 @@
 <script setup lang='ts'>
 const props = defineProps<{ value: number }>()
+const pct = Math.max(0, Math.min(100, Math.round(props.value)))
 </script>
 
 <template>
-  <div class='circle'>
-    <div class='inner'>{{ props.value }}%</div>
+  <div class="relative grid place-items-center">
+    <svg viewBox="0 0 42 42" class="h-20 w-20">
+      <circle cx="21" cy="21" r="18" fill="none" class="stroke-gray-200" stroke-width="4" />
+      <circle
+        cx="21" cy="21" r="18" fill="none"
+        class="stroke-green-500"
+        stroke-width="4"
+        :stroke-dasharray="`${pct * 1.13} ${113 - pct * 1.13}`"
+        stroke-linecap="round"
+        transform="rotate(-90 21 21)"
+      />
+    </svg>
+    <div class="absolute text-sm font-semibold text-gray-800">{{ pct }}%</div>
   </div>
 </template>
 
 <style scoped>
-.circle { width: 88px; height: 88px; border-radius: 50%; border: 6px solid #e5e7eb; position: relative }
-.circle::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 6px solid #34c759; border-right-color: transparent; border-bottom-color: transparent }
-.inner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 600 }
+.stroke-gray-200 { stroke: #e5e7eb }
+.stroke-green-500 { stroke: #22c55e }
 </style>
 
 

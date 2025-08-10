@@ -127,6 +127,24 @@ app.whenReady().then(async () => {
 })
 
 ipcMain.handle('ping', () => 'pong')
+// Settings generic KV for sticky-note
+ipcMain.handle('settings:get', async (_e, payload: { key: string }) => {
+  try {
+    const s = new SettingsDao()
+    return s.get(String(payload?.key || ''))
+  } catch {
+    return null
+  }
+})
+ipcMain.handle('settings:set', async (_e, payload: { key: string; value: string }) => {
+  try {
+    const s = new SettingsDao()
+    s.set(String(payload?.key || ''), String(payload?.value ?? ''))
+    return true
+  } catch {
+    return false
+  }
+})
 
 // LAN presence handlers
 ipcMain.handle('lan:list-online', async () => {

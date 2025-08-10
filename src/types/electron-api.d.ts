@@ -111,6 +111,9 @@ declare global {
         device_info: string | null
       } | null>
       getDeviceId?: () => Promise<string>
+        // generic settings
+        getSetting?: (key: string) => Promise<string | null>
+        setSetting?: (key: string, value: string) => Promise<boolean>
       chooseAvatar?: () => Promise<string | null>
       // Reports export
       saveReportText?: (content: string, defaultPath?: string, filters?: Array<{ name: string; extensions: string[] }>) => Promise<boolean>

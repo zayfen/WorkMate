@@ -1,17 +1,13 @@
 <script setup lang='ts'>
-import { ref } from 'vue'
 type AlertItem = { id: number, title: string, remain: string }
-const alerts = ref<AlertItem[]>([
-  { id: 1, title: '完成周报', remain: '剩余 2 小时' },
-  { id: 2, title: '提交发票', remain: '剩余 6 小时' }
-])
+const props = defineProps<{ alerts: AlertItem[] }>()
 </script>
 
 <template>
   <div class='card'>
     <div class='card-header'><h3>即将到期</h3></div>
     <ul class='list'>
-      <li v-for='a in alerts' :key='a.id'>
+      <li v-for='a in props.alerts' :key='a.id'>
         <span class='title'>{{ a.title }}</span>
         <span class='remain'>{{ a.remain }}</span>
       </li>
