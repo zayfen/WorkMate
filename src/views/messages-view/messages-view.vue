@@ -28,7 +28,7 @@ type Message = {
 
 const route = useRoute()
 const currentUserId = ref<string>('me')
-const peerId = computed(() => typeof route.query.to === 'string' ? route.query.to : undefined)
+const currentRoomId = ref<string>(route.query.to as string || "broadcast")
 const rooms = ref<Room[]>([
   {
     roomId: 'broadcast',
@@ -84,8 +84,8 @@ async function loadRooms() {
 onMounted(async () => {
   await loadRooms()
   // 如果 URL 指定了 to，选中对应房间，否则默认广播
-  if (peerId.value) {
-    await fetchMessages({ room: { roomId: peerId.value } as any, options: { reset: true } })
+  if (currentRoomId.value) {
+    await fetchMessages({ room: { roomId: currentRoomId.value } as any, options: { reset: true } })
   } else {
     await fetchMessages({ room: { roomId: 'broadcast' } as any, options: { reset: true } })
   }
@@ -98,10 +98,12 @@ let offChat: (() => void) | null = null
 onMounted(() => {
   try {
     offChat = window?.api?.onLanChat?.(async (payload) => {
-      const activeRoomId = peerId.value || 'broadcast'
-      const isToBroadcast = payload.to_device_id === null
-      const isInThisRoom = isToBroadcast ? activeRoomId === 'broadcast' : (payload.from_device_id === activeRoomId || payload.to_device_id === activeRoomId)
-      if (isInThisRoom) {
+      console.log("Got an new message: ", payload)
+      const isBroadcastMessage = !payload.to_device_id
+      const shouldFetchMessages = (!isBroadcastMessage && payload.from_device_id === currentRoomId.value) || (isBroadcastMessage && currentRoomId.value === 'broadcast')
+      console.log("in this Root: ", shouldFetchMessages)
+      console.log("currentRoomId: ", currentRoomId.value, " ;fromDeviceId: ", payload.from_device_id, " ;toDeviceId: ", payload.to_device_id)
+      if (shouldFetchMessages) {
         // 先本地乐观追加一条，提升即时反馈
         const meId = currentUserId.value
         const tempId = `temp-${payload.ts}-${payload.from_device_id}`
@@ -117,7 +119,7 @@ onMounted(() => {
         } as Message
         messages.value = [...messages.value, item]
         // 紧接着拉取一次，确保与数据库一致并去重
-        await fetchMessages({ room: { roomId: activeRoomId }, options: { reset: true } })
+        await fetchMessages({ room: { roomId: currentRoomId.value }, options: { reset: true } })
       }
     }) || null
   } catch {}
@@ -125,19 +127,14 @@ onMounted(() => {
 
 onBeforeUnmount(() => { try { offChat?.() } catch {} })
 
-watch(() => peerId.value, async (next) => {
-  if (!next) {
-    await fetchMessages({ room: { roomId: 'broadcast' } as any, options: { reset: true } })
-  } else {
-    await fetchMessages({ room: { roomId: next } as any, options: { reset: true } })
-  }
-})
-
-async function fetchMessages(payload: { room: { roomId: string }; options?: { reset?: boolean } }) {
+async function fetchMessages(payload: { room: { roomId: string }; options?: { reset?: boolean } }, switchRoom: boolean = false) {
 
   const { room } = payload
   messagesLoaded.value = false
   const withDeviceId = room.roomId === 'broadcast' ? undefined : room.roomId
+  if (switchRoom) {
+    currentRoomId.value = room.roomId;
+  }
   console.log("loading messages: ", withDeviceId)
   const rows = (await window?.api?.lanListTodayMessages?.(withDeviceId)) ?? []
   const me = currentUserId.value
@@ -171,6 +168,7 @@ async function sendMessage(payload: { roomId: string; content: string }) {
   // 重新拉取该房间消息
   await fetchMessages({ room: { roomId }, options: { reset: true } })
 }
+
 </script>
 
 <template>
@@ -181,7 +179,7 @@ async function sendMessage(payload: { roomId: string; content: string }) {
       :current-user-id="currentUserId"
       :rooms="rooms"
       :rooms-loaded="roomsLoaded"
-      :room-id="peerId || 'broadcast'"
+      :room-id="currentRoomId || 'broadcast'"
       :messages="messages"
       :messages-loaded="messagesLoaded"
       :username-options="JSON.stringify(usernameOptions)"
@@ -191,7 +189,7 @@ async function sendMessage(payload: { roomId: string; content: string }) {
       :show-reaction-emojis="false"
       :single-room="false"
       theme="light"
-      @fetch-messages="(evt: CustomEvent) => fetchMessages(Array.isArray((evt as any).detail) ? (evt as any).detail[0] : (evt as any).detail)"
+      @fetch-messages="(evt: CustomEvent) => fetchMessages(Array.isArray((evt as any).detail) ? (evt as any).detail[0] : (evt as any).detail, true)"
       @send-message="(evt: CustomEvent) => sendMessage(Array.isArray((evt as any).detail) ? (evt as any).detail[0] : (evt as any).detail)"
     />
   </div>
