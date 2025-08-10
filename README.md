@@ -18,6 +18,16 @@ Electron + Vue3 + TypeScript + Vite + Router + Vitest + Electron 脚手架。
 - `dist/` 前端构建输出
 - `dist-electron/` Electron 构建输出
 
+## 应用图标
+
+将平台图标文件放入 `build/` 目录（`package.json > build.directories.buildResources` 已指向）。默认约定：
+
+- macOS：`build/icon.icns`
+- Windows：`build/icon.ico`
+- Linux：`build/icons/512x512.png`（或 `build/icon.png`）
+
+通用图标已在 `package.json > build.icon` 配置为 `build/icon.png`。开发与网页标签的 favicon 使用 `public/icon.svg`（在 `index.html` 中已引用）。
+
 ## 测试
 - 框架：Vitest + @vue/test-utils + jsdom
 - 命令：

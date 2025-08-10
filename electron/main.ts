@@ -1,7 +1,7 @@
-import { app, BrowserWindow, ipcMain, shell, dialog, Notification } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, dialog, Notification, nativeImage } from 'electron'
 import { setupLanTaskCompleteNotifications, maybeBroadcastTaskComplete } from './services/lan/task-complete'
 import { join, dirname } from 'node:path'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { DatabaseManager } from './models/db'
 import { SettingsDao } from './models/settings'
 import { UsersDao } from './models/users'
@@ -14,6 +14,23 @@ process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 
 let mainWindow: BrowserWindow | null = null
 let lanService: UdpLanService | null = null
+
+function resolveWindowIconPath(): string | undefined {
+  try {
+    const projectRoot = process.cwd()
+    if (process.platform === 'win32') {
+      const winIcon = join(projectRoot, 'build', 'icon.ico')
+      return existsSync(winIcon) ? winIcon : undefined
+    }
+    if (process.platform === 'linux') {
+      const png512 = join(projectRoot, 'build', 'icons', '512x512.png')
+      if (existsSync(png512)) return png512
+      const png = join(projectRoot, 'build', 'icon.png')
+      return existsSync(png) ? png : undefined
+    }
+  } catch {}
+  return undefined
+}
 
 // Ensure single instance
 const gotLock = app.requestSingleInstanceLock()
@@ -32,6 +49,7 @@ const createWindow = async () => {
   mainWindow = new BrowserWindow({
     width: 1024,
     height: 700,
+    icon: resolveWindowIconPath(),
     webPreferences: {
       preload: join(__dirname, '../preload/preload.cjs'),
       contextIsolation: true,
@@ -63,6 +81,19 @@ app.on('activate', async () => {
 })
 
 app.whenReady().then(async () => {
+  // Set Dock icon on macOS during development if available
+  if (process.platform === 'darwin') {
+    try {
+      const icns = join(process.cwd(), 'build', 'icon.icns')
+      if ((app as any)?.dock && existsSync(icns)) {
+        const img = nativeImage.createFromPath(icns)
+        if (!img.isEmpty()) {
+          app.dock!.setIcon(img)
+        }
+      }
+    } catch {}
+  }
+
   // Initialize database in userData directory
   const dbPath = join(app.getPath('userData'), 'data', 'workmate.sqlite')
   try { mkdirSync(dirname(dbPath), { recursive: true }) } catch {}
