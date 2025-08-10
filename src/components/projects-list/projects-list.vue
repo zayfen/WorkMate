@@ -283,7 +283,7 @@ onMounted(fetchProjects)
             <label class="block text-xs text-gray-600">描述</label>
             <textarea v-model="form.description" rows="3" class="mt-1 w-full resize-y rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none" placeholder="可选"></textarea>
           </div>
-          <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-3">
             <div>
               <label class="block text-xs text-gray-600">预计结束日期</label>
               <DatePicker
