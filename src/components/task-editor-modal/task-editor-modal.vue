@@ -32,7 +32,7 @@ const form = reactive({
   description: '',
   project_id: 0 as number,
   participants_text: '',
-  due_date: '' as string, // yyyy-mm-dd
+  due_date: '' as string, // yyyy-mm-ddTHH:mm
   priority: 'medium' as TaskPriority,
   status: 'todo' as TaskStatus,
   note: ''
@@ -40,18 +40,20 @@ const form = reactive({
 
 const isEdit = computed(() => Boolean(props.task))
 
-function formatDate(ts?: number | null): string {
+function formatDateTimeLocal(ts?: number | null): string {
   if (!ts) return ''
   const d = new Date(ts)
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${day}T${hh}:${mm}`
 }
 
-function parseDate(dateStr: string): number | null {
-  if (!dateStr) return null
-  const t = new Date(dateStr).getTime()
+function parseDateTimeLocal(value: string): number | null {
+  if (!value) return null
+  const t = new Date(value).getTime()
   return Number.isFinite(t) ? t : null
 }
 
@@ -65,7 +67,7 @@ watch(() => props.task, (t) => {
     form.description = t.description ?? ''
     form.project_id = t.project_id
     form.participants_text = (t.participants || []).join(', ')
-    form.due_date = formatDate(t.due_date)
+    form.due_date = formatDateTimeLocal(t.due_date)
     form.priority = t.priority
     form.status = t.status
     form.note = t.note ?? ''
@@ -99,7 +101,7 @@ async function handleSave() {
     title: form.title.trim() || '未命名任务',
     description: form.description.trim() || null,
     participants: parseParticipants(form.participants_text),
-    due_date: parseDate(form.due_date),
+    due_date: parseDateTimeLocal(form.due_date),
     priority: form.priority,
     status: form.status,
     note: form.note.trim() || null
@@ -148,8 +150,8 @@ async function handleDelete() {
             </select>
             <label>参与人（用逗号分隔）</label>
             <input v-model='form.participants_text' placeholder='例如：张伟, 李娜' />
-            <label>截止日期</label>
-            <input v-model='form.due_date' type='date' />
+            <label>截止日期（精确到小时）</label>
+            <input v-model='form.due_date' type='datetime-local' />
             <label>优先级</label>
             <select v-model='form.priority'>
               <option value='high'>高</option>
