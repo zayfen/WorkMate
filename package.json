@@ -3,6 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "description": "Electron + Vue3 + TypeScript + Vite + Router with Vitest scaffold",
+  "author": { "name": "zhangyunfeng", "email": "zhangyunfeng0101@gmail.com" },
+  "email": "zhangyunfeng0101@gmail.com",
   "main": "dist-electron/main/index.cjs",
   "scripts": {
     "dev": "vite",
